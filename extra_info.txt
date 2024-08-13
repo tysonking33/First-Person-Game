@@ -1,0 +1,28 @@
+Executable: "opengl-template"
+Location: "build" folder
+Process to execute:
+1) cd build
+2) cmake --build .
+3) ./opengl-template
+
+
+To integrate new `.cpp` and `.hpp` files into your project, you need to update your `CMakeLists.txt` file to include these new source files in your build process. Here's how you can modify your `CMakeLists.txt`:
+
+```cmake
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+project(OpenGLTemplate CXX)
+
+# List your new source files
+set(new_sources 
+    ${SOURCE_DIR}/new_file.cpp
+    ${SOURCE_DIR}/new_file.hpp
+    # Add more .cpp and .hpp files as needed
+)
+
+# Append the new sources to the existing sources variable
+list(APPEND sources ${new_sources})
+
+# Rest of your CMakeLists.txt file remains unchanged...
+```
+
+Replace `"${SOURCE_DIR}/new_file.cpp"` and `"${SOURCE_DIR}/new_file.hpp"` with the actual paths to your new `.cpp` and `.hpp` files. Then, when you run `cmake --build .`, CMake will compile these new source files along with the existing ones, and you'll be able to use the functionality defined in them within your project.
