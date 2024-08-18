@@ -6,7 +6,7 @@
 
 class Player {
 public:
-    Camera camera;
+    Camera *camera;
 
     Player(glm::vec3 startPosition);
 

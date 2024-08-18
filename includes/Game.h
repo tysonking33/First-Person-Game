@@ -20,7 +20,7 @@ private:
 
     GLFWwindow* window;
     Shader *shader;  // Declaration only
-    Player player;
+    Player *player;
     Renderer *renderer;
 };
 

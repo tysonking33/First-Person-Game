@@ -13,7 +13,10 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     Yaw = yaw;           // Set the camera's initial yaw (rotation around the Y-axis)
     Pitch = pitch;       // Set the camera's initial pitch (rotation around the X-axis)
     updateCameraVectors(); // Update the camera's direction vectors based on the yaw and pitch
-    Position.y = 10.f;
+    Position.y = 3.f;
+    isJumping = false;
+    GRAVITY = 10.0f;
+    Velocity = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
 // Returns the view matrix, which transforms world coordinates to the camera's view space
@@ -23,20 +26,62 @@ glm::mat4 Camera::GetViewMatrix() {
 
 // Processes input for keyboard movement
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
-    float velocity = MovementSpeed * deltaTime; // Calculate the velocity based on movement speed and delta time
+    float velocityFactor  = MovementSpeed * deltaTime; // Calculate the velocity based on movement speed and delta time
+    float JUMP_STRENGTH = 10.f;
+    float movement_friction = 3.f;
+
+    if (isJumping == false)
+    {
+        Velocity.y = 0.0f;
+    }
+    if (isJumping) {
+        Velocity.y -= GRAVITY * deltaTime; // Apply gravity
+        Position += Velocity * deltaTime;   // Update position based on velocity
+
+        if (Position.y <= 1.0f) {
+            Position.y = 1.0f; // Reset position to ground level
+            Velocity.y = 0.0f; // Reset vertical velocity
+            isJumping = false; // Stop jumping
+        }
+    }
+    
 
     // Update the camera's position based on the direction of movement
-    if (direction == FORWARD)
-        Position += Front * velocity;   // Move forward
-    if (direction == BACKWARD)
-        Position -= Front * velocity;   // Move backward
-    if (direction == LEFT)
-        Position -= Right * velocity;   // Move left
-    if (direction == RIGHT)
-        Position += Right * velocity;   // Move right
+    if (direction == FORWARD){
+        std::cout << "move forward\n";
+        Velocity += Front * velocityFactor ;   // Move forward
+    }
+    if (direction == BACKWARD){
+        std::cout << "move backwards\n";
+        Velocity -= Front * velocityFactor ;   // Move backward
+    }
+    if (direction == LEFT){
+        std::cout << "move left\n";
+        Velocity -= Right * velocityFactor ;   // Move left
+    }
+    if (direction == RIGHT){
+        std::cout << "move right\n";
+        Velocity += Right * velocityFactor ;   // Move right
+    }
+    if (direction == JUMP && isJumping == false)
+    {
+        Velocity.y = JUMP_STRENGTH; // Set initial jump velocity
+        isJumping = true; // Set jumping state
+    }
+
+    
+
+
+    Velocity.x -= Velocity.x * movement_friction * deltaTime;
+    Velocity.z -= Velocity.z * movement_friction * deltaTime;
+    Position += Velocity * deltaTime;
+
+
 
     // Print the current position of the camera (for debugging purposes)
-    std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n"; 
+    std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
+    std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
+    previousPosition = Position;
 }
 
 // Processes input from mouse movement to control the camera's orientation
@@ -86,15 +131,28 @@ void Camera::updateCameraVectors() {
 
 void Camera::RunGravity()
 {
-    float gravity = 0.01f;
-    if (Position.y > 3)
+    float gravity = 0.05f;
+    if (Position.y > 1)
     {
         Position.y -= gravity;
     }
     else
     {
-        Position.y = 3;
+        Position.y = 1;
+        isJumping= false;
     }
-    std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n"; 
+    //std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
+    previousPosition =  Position;
 
+}
+
+
+void Camera::zero_velocity()
+{
+    Velocity = {0,0,0};
+}
+
+bool Camera::getIsJumpingFlag()
+{
+    return isJumping;
 }
