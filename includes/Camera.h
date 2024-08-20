@@ -6,6 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 enum Camera_Movement {
     FORWARD,
@@ -52,6 +54,9 @@ public:
     void zero_velocity();
 
     bool getIsJumpingFlag();
+    glm::vec3 getPosition();
+    glm::vec3 getFront();
+
 
 private:
     void updateCameraVectors();

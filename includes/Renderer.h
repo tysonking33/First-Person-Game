@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 #include "Camera.h"
 
+#include <array>
+#include <vector>
+
 const glm::vec3 Red       = glm::vec3(1.0f, 0.0f, 0.0f);  // Pure Red
 const glm::vec3 Green     = glm::vec3(0.0f, 1.0f, 0.0f);  // Pure Green
 const glm::vec3 Blue      = glm::vec3(0.0f, 0.0f, 1.0f);  // Pure Blue
@@ -22,6 +25,16 @@ const glm::vec3 DarkGray  = glm::vec3(0.25f, 0.25f, 0.25f); // Dark Gray
 const glm::vec3 Brown     = glm::vec3(0.6f, 0.3f, 0.0f);  // Brown
 const glm::vec3 Gold      = glm::vec3(1.0f, 0.84f, 0.0f); // Gold
 
+struct Vertex {
+    std::array<float,3> position;
+    std::array<float,3> normal;
+    std::array<float,2> texCoord;
+
+    Vertex(float x, float y, float z, float nx, float ny, float nz, float u, float v)
+    : position{x, y, z}, normal{nx, ny, nz}, texCoord{u, v}
+    {}
+};
+
 
 class Renderer {
 public:
@@ -30,10 +43,18 @@ public:
     void DrawPlane(Shader &shader, Camera &camera);
     void setPlaneColor(const glm::vec3 &color);  // Method to set the plane color
 
+    void DrawStick(Shader &shader, Camera &camera, glm::vec3 start, glm::vec3 end);
 
-    void DrawCube(Shader &shader, Camera &camera);
+    void DrawCube(Shader &shader, Camera &camera, glm::vec3 start, glm::vec3 end);
+    void ChangeHitStatus();
+    bool RayCast(glm::vec3 rayPosition, glm::vec3 rayViewDirection, std::vector<Vertex> DataPoints);
+    std::vector<Vertex> convertPlainArrayToCubeFormat(float originalArray[]);
+    bool CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std::vector<glm::vec3> planeCoordinates);
+
+
 private:
         glm::vec3 planeColor;  // Color variable
+        bool cubeHitStatus;
 
 };
 #endif

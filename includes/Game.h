@@ -17,11 +17,16 @@ private:
     void processInput(float deltaTime);
     void update(float deltaTime);
     void render();
+    //void calculateMouse();
+    float windowHeight, windowWidth;
 
     GLFWwindow* window;
     Shader *shader;  // Declaration only
     Player *player;
     Renderer *renderer;
+
+    bool drawBullet;
+    bool bulletHit;
 };
 
 #endif

@@ -96,8 +96,8 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
     if (constrainPitch) {
         if (Pitch > 89.0f)
             Pitch = 89.0f;
-        if (Pitch < -89.0f)
-            Pitch = -89.0f;
+        if (Pitch < -270.0f)
+            Pitch = -270.0f;
     }
 
     updateCameraVectors(); // Update the camera's direction vectors based on the new yaw and pitch
@@ -126,6 +126,8 @@ void Camera::updateCameraVectors() {
     // Recalculate the right and up vectors
     Right = glm::normalize(glm::cross(Front, WorldUp)); // Right vector is perpendicular to the front and world up vectors
     Up    = glm::normalize(glm::cross(Right, Front));   // Up vector is perpendicular to the right and front vectors
+
+std::cout << "Current front:" << glm::to_string(front)<<std::endl;
 }
 
 
@@ -155,4 +157,14 @@ void Camera::zero_velocity()
 bool Camera::getIsJumpingFlag()
 {
     return isJumping;
+}
+
+glm::vec3 Camera::getPosition()
+{
+    return Position;
+}
+
+glm::vec3 Camera::getFront()
+{
+    return Front;
 }
