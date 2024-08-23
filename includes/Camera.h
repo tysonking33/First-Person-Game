@@ -40,6 +40,7 @@ public:
     float Zoom;
 
     bool isJumping;
+    bool isWallRunLeft;
     float GRAVITY;
     glm::vec3 Velocity;
 
@@ -57,6 +58,9 @@ public:
     glm::vec3 getPosition();
     glm::vec3 getFront();
     float getYaw();
+    void Squat();
+    void wallRunLeft(float deltaTime);
+
 
 
 

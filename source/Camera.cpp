@@ -17,6 +17,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     isJumping = false;
     GRAVITY = 10.0f;
     Velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+    isWallRunLeft = false;
 }
 
 // Returns the view matrix, which transforms world coordinates to the camera's view space
@@ -59,7 +60,7 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
         std::cout << "move left\n";
         Velocity -= Right * velocityFactor ;   // Move left
     }
-    if (direction == RIGHT){
+    if (direction == RIGHT && isWallRunLeft == false){
         std::cout << "move right\n";
         Velocity += Right * velocityFactor ;   // Move right
     }
@@ -74,6 +75,12 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
     Velocity.z -= Velocity.z * movement_friction * deltaTime;
     Position += Velocity * deltaTime;
 
+    Position.x = std::min(10.f, Position.x);
+    Position.y = std::min(10.f, Position.y);
+    Position.z = std::min(10.f, Position.z);
+    Position.x = std::max(-10.f, Position.x);
+    Position.y = std::max(-10.f, Position.y);
+    Position.z = std::max(-10.f, Position.z);
 
 
     // Print the current position of the camera (for debugging purposes)
@@ -125,7 +132,7 @@ void Camera::updateCameraVectors() {
     Right = glm::normalize(glm::cross(Front, WorldUp)); // Right vector is perpendicular to the front and world up vectors
     Up    = glm::normalize(glm::cross(Right, Front));   // Up vector is perpendicular to the right and front vectors
 
-std::cout << "Current front:" << glm::to_string(front)<<std::endl;
+    //std::cout << "Current front:" << glm::to_string(front)<<std::endl;
 }
 
 
@@ -171,4 +178,48 @@ glm::vec3 Camera::getFront()
 float Camera::getYaw()
 {
     return Yaw;
+}
+
+void Camera::Squat()
+{
+    if (isJumping == false){
+        Position.y = 0.5;
+    }
+}
+
+
+void Camera::wallRunLeft(float deltaTime)
+{
+    float JUMP_STRENGTH = 10.f;
+
+
+    if (isWallRunLeft == false)
+    {
+        Velocity.y = 0.0f;
+    }
+    if (isWallRunLeft) {
+        Velocity.y -= GRAVITY*0.8 * deltaTime; // Apply gravity
+        Position += Velocity * deltaTime;   // Update position based on velocity
+
+        if (Position.y <= 1.0f) {
+            Position.y = 1.0f; // Reset position to ground level
+            Velocity.y = 0.0f; // Reset vertical velocity
+            isWallRunLeft = false; // Stop jumping
+        }
+    }
+
+    if (isWallRunLeft == false)
+    {
+        Velocity.y = JUMP_STRENGTH; // Set initial jump velocity
+        isWallRunLeft = true; // Set jumping state
+    }
+
+    Position += Velocity * deltaTime;
+
+
+
+    // Print the current position of the camera (for debugging purposes)
+    std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
+    std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
+    previousPosition = Position;
 }

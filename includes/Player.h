@@ -18,6 +18,9 @@ public:
 
     glm::mat4 getViewMatrix();
     Camera *getCamera();
+    void playerSquat();
+    void wallRunLeft(float deltaTime);
+
 };
 
 #endif

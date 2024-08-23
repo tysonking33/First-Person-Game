@@ -2,7 +2,7 @@
 
 Player::Player(glm::vec3 startPosition){
     camera = new Camera(startPosition);
-    std::cout << "Player constructor\n";
+    //std::cout << "Player constructor\n";
 }
 
 void Player::processKeyboardInput(Camera_Movement direction, float deltaTime)
@@ -28,4 +28,14 @@ glm::mat4 Player::getViewMatrix()
 Camera *Player::getCamera()
 {
     return camera;
+}
+
+void Player::playerSquat()
+{
+    camera->Squat();
+}
+
+void Player::wallRunLeft(float deltaTime)
+{
+    camera->wallRunLeft(deltaTime);
 }

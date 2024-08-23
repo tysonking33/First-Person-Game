@@ -2,7 +2,7 @@
 
 Game::Game()  {
     player = new Player(glm::vec3(0.0f, 0.0f, 3.0f));
-    std::cout << "constructor\n";
+    //std::cout << "constructor\n";
     init();
     windowHeight = 600;
     windowWidth = 800;
@@ -98,10 +98,33 @@ void Game::processInput(float deltaTime) {
         player->camera->zero_velocity();
     }
 
-    if ((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) && (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS))
+    if ((glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) && (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS))
     {
         exit(0);
     }
+
+    //check later
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+    {
+        player->playerSquat();
+    }
+
+    if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) && (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS))
+    {
+        //wall run left
+        if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) && renderer->detectWallLeft(player->getCamera()) == true)
+        {
+            player->wallRunLeft(deltaTime);
+        }
+
+        //wall run right
+        if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
+        {
+
+        }
+    }
+
+
 
 
     //std::cout << "finished processKeyboardInput\n";
@@ -112,21 +135,20 @@ void Game::processInput(float deltaTime) {
     //player->processMouseScroll(ypos);
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        player->processMouseMovement(-1, 0);        //rotate left
+        player->processMouseMovement(-5, 0);        //rotate left
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        player->processMouseMovement(1, 0);        //rotate right
+        player->processMouseMovement(5, 0);        //rotate right
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        player->processMouseMovement(0, -1);         //rotate down
+        player->processMouseMovement(0, -5);         //rotate down
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        player->processMouseMovement(0, 1);         //rotate up
+        player->processMouseMovement(0, 5);         //rotate up
 
     /*-----------------------------Mouse click----------------------------------*/
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
     {
         std::cout << "Left mouse button clicked\n";
         drawBullet = true;
-        glm::vec3 viewDirection = player->camera->getFront();
-        glm::vec3 position = player->camera->getPosition();
+
 
         float vertices[] = {
             // Top face
@@ -182,14 +204,14 @@ void Game::processInput(float deltaTime) {
         if (renderer->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(vertices)) == true)
         {
             bulletHit = true;
-            renderer->ChangeHitStatus();
+            renderer->ChangeHitStatus(bulletHit);
         }
-        /*else
+        else
         {
             bulletHit = false;
-            renderer->ChangeHitStatus();
+            renderer->ChangeHitStatus(bulletHit);
 
-        }*/
+        }
     }
 
     
@@ -209,6 +231,7 @@ void Game::render() {
     shader->use();
     //renderer->DrawCube(*shader, player.camera);
     renderer->DrawPlane(*shader, *player->camera);
+    renderer->DrawWall(*shader, *player->camera);
 
     //glm::vec3 start = player->camera->getPosition();
     //    glm::vec3 end = glm::vec3{start.x + 1, start.y + 1, start.z + 1};
@@ -216,9 +239,8 @@ void Game::render() {
 
     //if (drawBullet == true)
     {
-        glm::vec3 start = player->camera->getPosition();
-        glm::vec3 end = glm::vec3{start.x + 1, start.y + 1, start.z + 1};
-        renderer->DrawCube(*shader, *player->camera, start, end);
+        glm::vec3 position = player->camera->getPosition();
+        renderer->DrawCube(*shader, *player->camera, position, 1);
     }
 
     glfwSwapBuffers(window);

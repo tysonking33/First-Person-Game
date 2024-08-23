@@ -102,7 +102,7 @@ void Renderer::DrawStick(Shader &shader, Camera &camera, glm::vec3 start, glm::v
     glDeleteBuffers(1, &VBO);
 }
 
-void Renderer::DrawCube(Shader &shader, Camera &camera, glm::vec3 start, glm::vec3 end)
+void Renderer::DrawCube(Shader &shader, Camera &camera, glm::vec3 position, float size)
 {
     float vertices[] = {
         // Top face
@@ -200,9 +200,9 @@ void Renderer::DrawCube(Shader &shader, Camera &camera, glm::vec3 start, glm::ve
     //std::cout << "successfully drawCube\n";
 }
 
-void Renderer::ChangeHitStatus()
+void Renderer::ChangeHitStatus(bool hit)
 {
-    cubeHitStatus = !cubeHitStatus;
+    cubeHitStatus = hit;
 }
 
 
@@ -254,13 +254,13 @@ bool Renderer::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
         //assume there is a  10 degrees angles to each side for the viewport, idk later, i.e. if yaw is 30 the viewport angle is 75 and -5
         float leftRightAngle = 180.f;
         float clockwiseAngle = cameraYaw - leftRightAngle;
-        if (clockwiseAngle <= -360)
+        if (clockwiseAngle <= -359)
         {
             clockwiseAngle += 360;
         }
 
         float antiClockwiseAngle = cameraYaw + leftRightAngle;
-        if (antiClockwiseAngle >= 360)
+        if (antiClockwiseAngle >= 359)
         {
             antiClockwiseAngle -= 360;
         }
@@ -280,11 +280,17 @@ bool Renderer::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
         glm::vec3 normalisedNormalVector = glm::normalize(normalVector);
 
         float normDotDir = glm::dot(normalisedNormalVector, rayViewDirection);
-        if ( normDotDir == 0)
+
+        std::cout << "Normal Vector: " << glm::to_string(normalisedNormalVector) << std::endl;
+        std::cout << "Ray Direction: " << glm::to_string(normalisedDir) << std::endl;
+        std::cout << "Dot Product: " << normDotDir << std::endl;
+
+        const float epsilon = 1e-6f;
+        if (fabs(normDotDir) < epsilon)
         {
             //no intersection, parallel
             std::cout << "no intersection, parallel\n";
-            return false;
+            //return false;
         }
 
         //plane's distance from the origin along the normal vector
@@ -296,7 +302,7 @@ bool Renderer::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
             //behind ray origin, no collison
             std::cout << "behind ray origin, no collison\n";
 
-            return false;
+            //return false;
         }
         else
         {
@@ -308,7 +314,10 @@ bool Renderer::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
             planeCoordinates.push_back(p3);
             planeCoordinates.push_back(p4);
             //collison occurs where t is positive, i.e. in front of camera
-            return CheckDotOnBoundedPlane(point_of_intersection, planeCoordinates, normalisedNormalVector);
+            if (CheckDotOnBoundedPlane(point_of_intersection, planeCoordinates, normalisedNormalVector) == true)
+            {
+                return true;
+            }
         }
         
 
@@ -368,10 +377,7 @@ bool Renderer::CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std::vect
             return true;
         }
 
-    //p0, p1, p2
-    //p0 = p2
-    //p1 = p3
-    //p2 = p0
+
     /*----------------------------------------------triangle 2 = p2, p3, p0---------------------------------*/
 
         //find vectors
@@ -401,5 +407,63 @@ bool Renderer::CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std::vect
             return true;
         }
     std::cout << "point of intersection not in plane\n";
+    return false;
+}
+
+
+void Renderer::DrawWall(Shader &shader, Camera &camera)
+{
+
+    float vertices[] = {
+        // positions          // normals           // texture coords
+        -10.0f, -10.0f,10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,     //top left
+        10.0f, -10.0f, 10.0f,0.0f, 1.0f, 0.0f, 1.0f, 0.0f,      //top right corner
+        10.0f, 10.0f,10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,       //bottom right corner
+        10.0f,10.0f,10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,       //bottom right corner
+        -10.0f, 10.0f,10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,      //bottom-left corner
+        -10.0f,  -10.0f,10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};    //top left corner
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    planeColor = Gray;
+
+    shader.use();
+    shader.setVec3("planeColor", planeColor); // Set the plane color
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}
+
+bool Renderer::detectWallLeft(Camera *camera)
+{
+    if (camera->getPosition().z == 10.f)
+    {
+        return true;
+    }
     return false;
 }

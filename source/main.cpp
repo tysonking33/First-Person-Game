@@ -2,7 +2,7 @@
 
 
 int main() {
-    std::cout << "Main\n";
+    //std::cout << "Main\n";
     Game game;
     game.run();
     return 0;
