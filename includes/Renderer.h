@@ -47,9 +47,9 @@ public:
 
     void DrawCube(Shader &shader, Camera &camera, glm::vec3 start, glm::vec3 end);
     void ChangeHitStatus();
-    bool RayCast(glm::vec3 rayPosition, glm::vec3 rayViewDirection, std::vector<Vertex> DataPoints);
+    bool RayCast(Camera *camera, std::vector<Vertex> DataPoints);
     std::vector<Vertex> convertPlainArrayToCubeFormat(float originalArray[]);
-    bool CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std::vector<glm::vec3> planeCoordinates);
+    bool CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std::vector<glm::vec3> planeCoordinates, glm::vec3 planeNormal);
 
 
 private:

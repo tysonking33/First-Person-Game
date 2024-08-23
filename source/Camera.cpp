@@ -70,8 +70,6 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
     }
 
     
-
-
     Velocity.x -= Velocity.x * movement_friction * deltaTime;
     Velocity.z -= Velocity.z * movement_friction * deltaTime;
     Position += Velocity * deltaTime;
@@ -167,4 +165,10 @@ glm::vec3 Camera::getPosition()
 glm::vec3 Camera::getFront()
 {
     return Front;
+}
+
+
+float Camera::getYaw()
+{
+    return Yaw;
 }

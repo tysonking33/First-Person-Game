@@ -56,6 +56,8 @@ public:
     bool getIsJumpingFlag();
     glm::vec3 getPosition();
     glm::vec3 getFront();
+    float getYaw();
+
 
 
 private:

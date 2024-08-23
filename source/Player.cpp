@@ -24,3 +24,8 @@ glm::mat4 Player::getViewMatrix()
 {
     return camera->GetViewMatrix();
 }
+
+Camera *Player::getCamera()
+{
+    return camera;
+}

@@ -17,6 +17,7 @@ public:
     void processMouseScroll(float yoffset);
 
     glm::mat4 getViewMatrix();
+    Camera *getCamera();
 };
 
 #endif

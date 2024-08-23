@@ -179,7 +179,7 @@ void Game::processInput(float deltaTime) {
             1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f   // Top-Left
         };
 
-        if (renderer->RayCast(position, viewDirection, renderer->convertPlainArrayToCubeFormat(vertices)) == true)
+        if (renderer->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(vertices)) == true)
         {
             bulletHit = true;
             renderer->ChangeHitStatus();
