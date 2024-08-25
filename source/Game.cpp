@@ -154,6 +154,7 @@ void Game::processInput(float deltaTime)
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
     {
         std::cout << "Left mouse button clicked\n";
+        renderer->DrawStreak(*shader, *player->camera);
 
         if (renderer->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(enemyCube)) == true)
         {

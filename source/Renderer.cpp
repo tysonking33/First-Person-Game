@@ -486,3 +486,53 @@ bool Renderer::detectWallLeft(Camera *camera)
     }
     return false;
 }
+
+
+void Renderer::DrawStreak(Shader &shader, Camera &camera){
+    
+    float x_start = camera.getPosition().x;
+    float y_start = camera.getPosition().y;
+    float z_start = camera.getPosition().z;
+
+    float t = 10.f;
+
+    float x_end = camera.getPosition().x + t * camera.getFront().x;
+    float y_end = camera.getPosition().y + t * camera.getFront().y;
+    float z_end = camera.getPosition().z + t * camera.getFront().z;
+
+    GLfloat vertices[] = {
+        x_start, y_start, z_start, // Vertex 1
+         x_end,  y_end, z_end // Vertex 2
+    };
+
+    // Set up VAO and VBO
+    GLuint VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    planeColor = White;
+
+    shader.use();
+    shader.setVec3("planeColor", planeColor); // Set the plane color
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_LINES, 0, 2); // Draw a single line with 2 verticesa
+
+    glBindVertexArray(0);
+}

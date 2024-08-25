@@ -56,6 +56,7 @@ std::vector<Vertex> convertPlainArrayToCubeFormat(std::vector<float> originalArr
 
     void DrawWall(Shader &shader, Camera &camera);
     bool detectWallLeft(Camera *camera);
+void DrawStreak(Shader &shader, Camera &camera);
 private:
     glm::vec3 planeColor; // Color variable
     bool cubeHitStatus;
