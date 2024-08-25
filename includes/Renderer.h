@@ -52,6 +52,7 @@ std::vector<float> GenerateCube(float size, const glm::vec3& position);
     bool RayCast(Camera *camera, std::vector<Vertex> DataPoints);
 std::vector<Vertex> convertPlainArrayToCubeFormat(std::vector<float> originalArray);
     bool CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std::vector<glm::vec3> planeCoordinates, glm::vec3 planeNormal);
+    void UpdateCube(float size, const glm::vec3& position, std::vector<float>& vertices);
 
     void DrawWall(Shader &shader, Camera &camera);
     bool detectWallLeft(Camera *camera);

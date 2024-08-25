@@ -17,7 +17,7 @@ private:
     void processInput(float deltaTime);
     void update(float deltaTime);
     void render();
-    //void calculateMouse();
+    void calculateMouse();
     float windowHeight, windowWidth;
 
     GLFWwindow* window;
@@ -28,6 +28,9 @@ private:
     bool drawBullet;
     bool bulletHit;
     std::vector<float> enemyCube;
+    glm::vec3 enemyPosition;
+    bool enemyGoLeft;
+    float enemySize;
 };
 
 #endif

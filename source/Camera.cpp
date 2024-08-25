@@ -101,8 +101,8 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
     if (constrainPitch) {
         if (Pitch > 89.0f)
             Pitch = 89.0f;
-        if (Pitch < -270.0f)
-            Pitch = -270.0f;
+        if (Pitch < -89.0f)
+            Pitch = -89.0f;
     }
 
     updateCameraVectors(); // Update the camera's direction vectors based on the new yaw and pitch

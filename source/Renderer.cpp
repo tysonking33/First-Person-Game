@@ -199,6 +199,26 @@ void Renderer::DrawCube(Shader &shader, Camera &camera, std::vector<float> verti
     //std::cout << "successfully drawCube\n";
 }
 
+
+void Renderer::UpdateCube(float size, const glm::vec3& position, std::vector<float>& vertices) {
+    float halfSize = size / 2.0f;
+
+    // Update the vertex positions
+    for (size_t i = 0; i < vertices.size(); i += 8) {
+        // Calculate the relative positions based on the original vertices
+        float relativeX = (vertices[i] < position.x) ? -halfSize : halfSize;
+        float relativeY = (vertices[i + 1] < position.y) ? -halfSize : halfSize;
+        float relativeZ = (vertices[i + 2] < position.z) ? -halfSize : halfSize;
+
+        // Update the vertex position based on the new size and position
+        vertices[i]     = position.x + relativeX;
+        vertices[i + 1] = position.y + relativeY;
+        vertices[i + 2] = position.z + relativeZ;
+    }
+}
+
+
+
 void Renderer::ChangeHitStatus(bool hit)
 {
     cubeHitStatus = hit;
