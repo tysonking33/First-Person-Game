@@ -46,11 +46,11 @@ public:
     void setPlaneColor(const glm::vec3 &color); // Method to set the plane color
 
     void DrawStick(Shader &shader, Camera &camera, glm::vec3 start, glm::vec3 end);
-
-    void DrawCube(Shader &shader, Camera &camera, glm::vec3 position, float size);
+std::vector<float> GenerateCube(float size, const glm::vec3& position);
+    void DrawCube(Shader &shader, Camera &camera, std::vector<float> vertices);
     void ChangeHitStatus(bool hit);
     bool RayCast(Camera *camera, std::vector<Vertex> DataPoints);
-    std::vector<Vertex> convertPlainArrayToCubeFormat(float originalArray[]);
+std::vector<Vertex> convertPlainArrayToCubeFormat(std::vector<float> originalArray);
     bool CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std::vector<glm::vec3> planeCoordinates, glm::vec3 planeNormal);
 
     void DrawWall(Shader &shader, Camera &camera);

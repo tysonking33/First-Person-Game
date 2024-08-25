@@ -102,66 +102,65 @@ void Renderer::DrawStick(Shader &shader, Camera &camera, glm::vec3 start, glm::v
     glDeleteBuffers(1, &VBO);
 }
 
-void Renderer::DrawCube(Shader &shader, Camera &camera, glm::vec3 position, float size)
-{
-    float vertices[] = {
-        // Top face
-        // positions          // normals           // texture coords
-        -1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Top-Left                   //a
-        1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // Top-Right                  //b
-        1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   // Bottom-Right               //c
-        1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   // Bottom-Right               //c
-        -1.0f, 1.0f, 10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // Bottom-Left               //d
-        -1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Top-Left                   //a
-
-        // Bottom face
-        -1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // Top-Left
-        1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,  // Top-Right
-        1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,   // Bottom-Right
-        1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,   // Bottom-Right
-        -1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,  // Bottom-Left
-        -1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // Top-Left
-
+std::vector<float> Renderer::GenerateCube(float size, const glm::vec3& position) {
+    float halfSize = size / 2.0f;
+    std::vector<float> vertices = {
+        // Positions                      // Normals           // Texture Coords
         // Front face
-        -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Top-Left
-        1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,   // Top-Right
-        1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // Bottom-Right
-        1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // Bottom-Right
-        -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // Bottom-Left
-        -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Top-Left
-
+        position.x - halfSize, position.y - halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        position.x + halfSize, position.y - halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        position.x - halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+        position.x - halfSize, position.y - halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
         // Back face
-        -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // Top-Left
-        1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,  // Top-Right
-        1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // Bottom-Right
-        1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // Bottom-Right
-        -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // Bottom-Left
-        -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,  // Top-Left
-
+        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+        position.x + halfSize, position.y - halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+        position.x + halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        position.x + halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        position.x - halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
         // Left face
-        -1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-Left
-        -1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // Top-Right
-        -1.0f, -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // Bottom-Right
-        -1.0f, -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // Bottom-Right
-        -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // Bottom-Left
-        -1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-Left
-
+        position.x - halfSize, position.y - halfSize, position.z - halfSize,  -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        position.x - halfSize, position.y - halfSize, position.z + halfSize,  -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        position.x - halfSize, position.y + halfSize, position.z + halfSize,  -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        position.x - halfSize, position.y + halfSize, position.z + halfSize,  -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        position.x - halfSize, position.y + halfSize, position.z - halfSize,  -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        position.x - halfSize, position.y - halfSize, position.z - halfSize,  -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         // Right face
-        1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // Top-Left
-        1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // Top-Right
-        1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // Bottom-Right
-        1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // Bottom-Right
-        1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // Bottom-Left
-        1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f   // Top-Left
+        position.x + halfSize, position.y - halfSize, position.z - halfSize,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        position.x + halfSize, position.y - halfSize, position.z + halfSize,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        position.x + halfSize, position.y + halfSize, position.z + halfSize,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        position.x + halfSize, position.y + halfSize, position.z + halfSize,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        position.x + halfSize, position.y + halfSize, position.z - halfSize,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        position.x + halfSize, position.y - halfSize, position.z - halfSize,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        // Top face
+        position.x - halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        position.x + halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        position.x - halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        position.x - halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        // Bottom face
+        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        position.x + halfSize, position.y - halfSize, position.z - halfSize,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        position.x + halfSize, position.y - halfSize, position.z + halfSize,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+        position.x + halfSize, position.y - halfSize, position.z + halfSize,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+        position.x - halfSize, position.y - halfSize, position.z + halfSize,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
     };
 
+    return vertices;
+}
+
+void Renderer::DrawCube(Shader &shader, Camera &camera, std::vector<float> vertices)
+{
     planeColor = Green;
 
     if (cubeHitStatus == true)
     {
         planeColor = Red;
     }
-
 
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
@@ -170,7 +169,7 @@ void Renderer::DrawCube(Shader &shader, Camera &camera, glm::vec3 position, floa
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
@@ -326,7 +325,7 @@ bool Renderer::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
     return false;
 }
 
-std::vector<Vertex> Renderer::convertPlainArrayToCubeFormat(float originalArray[])
+std::vector<Vertex> Renderer::convertPlainArrayToCubeFormat(std::vector<float> originalArray)
 {
     std::vector<Vertex> final_vector;
     for (int i = 0; i < 8*36; i += 8)

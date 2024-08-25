@@ -27,6 +27,7 @@ private:
 
     bool drawBullet;
     bool bulletHit;
+    std::vector<float> enemyCube;
 };
 
 #endif
