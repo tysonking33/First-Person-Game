@@ -2,11 +2,14 @@
 #define PLAYER_H
 
 #include "Camera.h"
+#include "Cube.h"
 #include <iostream>
 
 class Player {
 public:
     Camera *camera;
+
+    Cube *playerCube;
 
     Player(glm::vec3 startPosition);
 

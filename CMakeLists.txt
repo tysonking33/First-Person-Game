@@ -47,6 +47,7 @@ set(SOURCES
     ${SOURCE_DIR}/Renderer.cpp
     ${SOURCE_DIR}/Shader.cpp
     ${SOURCE_DIR}/Main.cpp
+    ${SOURCE_DIR}/Cube.cpp
 )
 
 # Add all header files
@@ -58,6 +59,7 @@ set(headers
     ${INCLUDE_DIR}/Renderer.h
     ${INCLUDE_DIR}/Shader.h
     ${INCLUDE_DIR}/stb_image.h
+    ${INCLUDE_DIR}/Cube.h
 
 )
 

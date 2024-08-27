@@ -3,11 +3,15 @@
 Player::Player(glm::vec3 startPosition){
     camera = new Camera(startPosition);
     //std::cout << "Player constructor\n";
+    glm::vec3 newPosition = camera->getPosition() + camera->getFront();
+    playerCube = new Cube(newPosition, 0.05f);
 }
 
 void Player::processKeyboardInput(Camera_Movement direction, float deltaTime)
 {
     camera->ProcessKeyboard(direction, deltaTime);
+    glm::vec3 newPosition = camera->getPosition() + camera->getFront();
+    playerCube->UpdateCube(playerCube->getCubeSize(), newPosition);
 }
 
 void Player::processMouseMovement(float xoffset, float yoffset)

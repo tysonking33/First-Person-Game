@@ -102,60 +102,10 @@ void Renderer::DrawStick(Shader &shader, Camera &camera, glm::vec3 start, glm::v
     glDeleteBuffers(1, &VBO);
 }
 
-std::vector<float> Renderer::GenerateCube(float size, const glm::vec3& position) {
-    float halfSize = size / 2.0f;
-    std::vector<float> vertices = {
-        // Positions                      // Normals           // Texture Coords
-        // Front face
-        position.x - halfSize, position.y - halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        position.x + halfSize, position.y - halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        position.x - halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-        position.x - halfSize, position.y - halfSize, position.z + halfSize,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        // Back face
-        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-        position.x + halfSize, position.y - halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-        position.x + halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-        position.x + halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-        position.x - halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
-        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-        // Left face
-        position.x - halfSize, position.y - halfSize, position.z - halfSize,  -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        position.x - halfSize, position.y - halfSize, position.z + halfSize,  -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        position.x - halfSize, position.y + halfSize, position.z + halfSize,  -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        position.x - halfSize, position.y + halfSize, position.z + halfSize,  -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        position.x - halfSize, position.y + halfSize, position.z - halfSize,  -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        position.x - halfSize, position.y - halfSize, position.z - halfSize,  -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        // Right face
-        position.x + halfSize, position.y - halfSize, position.z - halfSize,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        position.x + halfSize, position.y - halfSize, position.z + halfSize,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        position.x + halfSize, position.y + halfSize, position.z + halfSize,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        position.x + halfSize, position.y + halfSize, position.z + halfSize,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        position.x + halfSize, position.y + halfSize, position.z - halfSize,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        position.x + halfSize, position.y - halfSize, position.z - halfSize,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        // Top face
-        position.x - halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        position.x + halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        position.x + halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        position.x - halfSize, position.y + halfSize, position.z + halfSize,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        position.x - halfSize, position.y + halfSize, position.z - halfSize,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        // Bottom face
-        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        position.x + halfSize, position.y - halfSize, position.z - halfSize,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        position.x + halfSize, position.y - halfSize, position.z + halfSize,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-        position.x + halfSize, position.y - halfSize, position.z + halfSize,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-        position.x - halfSize, position.y - halfSize, position.z + halfSize,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-        position.x - halfSize, position.y - halfSize, position.z - halfSize,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-    };
 
-    return vertices;
-}
 
-void Renderer::DrawCube(Shader &shader, Camera &camera, std::vector<float> vertices)
+void Renderer::DrawCube(Shader &shader, Camera &camera, std::vector<float> vertices, glm::vec3 planeColor)
 {
-    planeColor = Green;
 
     if (cubeHitStatus == true)
     {
@@ -198,25 +148,6 @@ void Renderer::DrawCube(Shader &shader, Camera &camera, std::vector<float> verti
 
     //std::cout << "successfully drawCube\n";
 }
-
-
-void Renderer::UpdateCube(float size, const glm::vec3& position, std::vector<float>& vertices) {
-    float halfSize = size / 2.0f;
-
-    // Update the vertex positions
-    for (size_t i = 0; i < vertices.size(); i += 8) {
-        // Calculate the relative positions based on the original vertices
-        float relativeX = (vertices[i] < position.x) ? -halfSize : halfSize;
-        float relativeY = (vertices[i + 1] < position.y) ? -halfSize : halfSize;
-        float relativeZ = (vertices[i + 2] < position.z) ? -halfSize : halfSize;
-
-        // Update the vertex position based on the new size and position
-        vertices[i]     = position.x + relativeX;
-        vertices[i + 1] = position.y + relativeY;
-        vertices[i + 2] = position.z + relativeZ;
-    }
-}
-
 
 
 void Renderer::ChangeHitStatus(bool hit)

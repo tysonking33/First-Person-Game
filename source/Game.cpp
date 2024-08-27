@@ -11,7 +11,9 @@ Game::Game()
     enemyGoLeft = true;
     enemySize = 1.f;
     drawBullet = true;
-    enemyPosition = {0.f, 1.f, 3.f};
+    enemyPosition = {0.f, 1.f, 3.f};    
+    enemyCube = new Cube(enemyPosition, enemySize);
+
 }
 
 void Game::init()
@@ -114,10 +116,11 @@ void Game::processInput(float deltaTime)
 
     if ((glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) && (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS))
     {
+        std::cout << "Exiting program\n";
         exit(0);
     }
 
-    // check later
+    /*------------------------------------check later----------------------------------------*/ 
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
     {
         player->playerSquat();
@@ -156,7 +159,7 @@ void Game::processInput(float deltaTime)
         std::cout << "Left mouse button clicked\n";
         renderer->DrawStreak(*shader, *player->camera);
 
-        if (renderer->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(enemyCube)) == true)
+        if (renderer->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(enemyCube->getCubeVector())) == true)
         {
             bulletHit = true;
             renderer->ChangeHitStatus(bulletHit);
@@ -190,8 +193,8 @@ void Game::update(float deltaTime)
             enemyGoLeft = true; // Corrected assignment
         }
     }
-    renderer->UpdateCube(enemySize, enemyPosition, enemyCube);
-    renderer->DrawCube(*shader, *player->camera, enemyCube);
+    enemyCube->UpdateCube(enemySize, enemyPosition);
+    renderer->DrawCube(*shader, *player->camera, enemyCube->getCubeVector(), Green);
 
 }
 
@@ -204,8 +207,13 @@ void Game::render()
     renderer->DrawWall(*shader, *player->camera);
 
 
-    enemyCube = renderer->GenerateCube(enemySize, enemyPosition);
-    renderer->DrawCube(*shader, *player->camera, enemyCube);
+    renderer->DrawCube(*shader, *player->camera, enemyCube->getCubeVector(), Green);
+    renderer->DrawStreak(*shader, *player->camera);
+
+    glm::vec3 crosshairPosition = player->camera->getPosition() + 0.1f*player->camera->getFront();
+    
+    Cube *crosshairCube = new Cube(crosshairPosition, 0.001f);
+    renderer->DrawCube(*shader, *player->camera, crosshairCube->getCubeVector(), White);
 
     glfwSwapBuffers(window);
 }

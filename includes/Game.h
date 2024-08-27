@@ -27,10 +27,12 @@ private:
 
     bool drawBullet;
     bool bulletHit;
-    std::vector<float> enemyCube;
     glm::vec3 enemyPosition;
     bool enemyGoLeft;
     float enemySize;
+
+
+    Cube *enemyCube;
 };
 
 #endif
