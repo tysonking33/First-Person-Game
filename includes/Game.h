@@ -7,6 +7,8 @@
 #include "Player.h"
 #include "Renderer.h"
 
+#include<functional>
+
 class Game {
 public:
     Game();
@@ -33,6 +35,10 @@ private:
 
 
     Cube *enemyCube;
+
+   
+    template<typename Func, typename T1, typename T2, typename ...Args>
+    bool DoThingForTimeSec(Func func, float seconds, float startTime, Args... args);
 };
 
 #endif

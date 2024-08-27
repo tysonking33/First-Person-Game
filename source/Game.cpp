@@ -11,9 +11,8 @@ Game::Game()
     enemyGoLeft = true;
     enemySize = 1.f;
     drawBullet = true;
-    enemyPosition = {0.f, 1.f, 3.f};    
+    enemyPosition = {0.f, 1.f, 3.f};
     enemyCube = new Cube(enemyPosition, enemySize);
-
 }
 
 void Game::init()
@@ -120,7 +119,7 @@ void Game::processInput(float deltaTime)
         exit(0);
     }
 
-    /*------------------------------------check later----------------------------------------*/ 
+    /*------------------------------------check later----------------------------------------*/
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
     {
         player->playerSquat();
@@ -157,7 +156,11 @@ void Game::processInput(float deltaTime)
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
     {
         std::cout << "Left mouse button clicked\n";
-        renderer->DrawStreak(*shader, *player->camera);
+
+        glm::vec3 crosshairPosition = player->camera->getPosition() + 0.1f * player->camera->getFront();
+
+        Cube *crosshairCube = new Cube(crosshairPosition, 0.001f);
+        renderer->DrawCube(*shader, *player->camera, crosshairCube->getCubeVector(), White);
 
         if (renderer->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(enemyCube->getCubeVector())) == true)
         {
@@ -195,7 +198,6 @@ void Game::update(float deltaTime)
     }
     enemyCube->UpdateCube(enemySize, enemyPosition);
     renderer->DrawCube(*shader, *player->camera, enemyCube->getCubeVector(), Green);
-
 }
 
 void Game::render()
@@ -206,16 +208,20 @@ void Game::render()
     renderer->DrawPlane(*shader, *player->camera);
     renderer->DrawWall(*shader, *player->camera);
 
-
     renderer->DrawCube(*shader, *player->camera, enemyCube->getCubeVector(), Green);
-    renderer->DrawStreak(*shader, *player->camera);
-
-    glm::vec3 crosshairPosition = player->camera->getPosition() + 0.1f*player->camera->getFront();
-    
-    Cube *crosshairCube = new Cube(crosshairPosition, 0.001f);
-    renderer->DrawCube(*shader, *player->camera, crosshairCube->getCubeVector(), White);
 
     glfwSwapBuffers(window);
+}
+
+template <typename Func, typename T1, typename T2, typename... Args>
+bool Game::DoThingForTimeSec(Func func, float seconds, float startTime, Args... args)
+{
+    if (startTime - static_cast<float> glfwGetTime() < seconds)
+    {
+        func(args...);
+        return true; // still running
+    }
+    return false;
 }
 
 void Game::run()
