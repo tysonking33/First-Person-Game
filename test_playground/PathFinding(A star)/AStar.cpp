@@ -1,11 +1,23 @@
 #include "AStar.h"
 
-float euclideanDistance(Cell currentCell, Cell otherCell)
+AStar::AStar(float newMapHeightPx, float newMapWidthPx, float newMapHeightCount,  float newMapWidthCount)
+{
+    mapHeightPx =newMapHeightPx;
+    mapWidthPx = newMapWidthPx;
+    mapHeightCount = newMapHeightCount;
+    mapWidthCount = newMapWidthCount;
+
+    cellHeight = mapHeightPx/ mapHeightCount;
+    cellWidth = mapWidthPx /mapWidthCount;
+}
+
+
+float AStar::euclideanDistance(Cell currentCell, Cell otherCell)
 {
     return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
 }
 
-Cell findLowestF(std::vector<Cell> &openList)
+Cell AStar::findLowestF(std::vector<Cell> &openList)
 {
     if (openList.empty())
     {
@@ -28,7 +40,7 @@ Cell findLowestF(std::vector<Cell> &openList)
     return minFCell;
 }
 
-std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+std::vector<Cell> AStar::findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
 {
     std::vector<Cell> successorVector;
     std::vector<std::vector<int>> neighbourMovements = {
@@ -63,17 +75,17 @@ std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &curren
     return successorVector;
 }
 
-bool compareCells(Cell A, Cell B)
+bool AStar::compareCells(Cell A, Cell B)
 {
     return (A.x == B.x) && (A.y == B.y);
 }
 
-bool checkEmptyCell(Cell A)
+bool AStar::checkEmptyCell(Cell A)
 {
     return A == Cell{-1, -1, -1, nullptr, -1, -1};
 }
 
-Cell findCell(std::vector<Cell> cellList, Cell target)
+Cell AStar::findCell(std::vector<Cell> cellList, Cell target)
 {
     for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
     {
@@ -85,13 +97,13 @@ Cell findCell(std::vector<Cell> cellList, Cell target)
     return Cell{-1, -1, -1, nullptr, -1, -1};
 }
 
-void printCell(std::string name, Cell a)
+void AStar::printCell(std::string name, Cell a)
 {
     std::cout << "Printing Cell " << name << ") g: " << a.g << ", h: " << a.h << ", f: " << a.f
               << ", x: " << a.x << ", y: " << a.y << ", value: " << a.value << std::endl;
 }
 
-bool areAllCellsEmpty(const std::vector<Cell> &openList)
+bool AStar::areAllCellsEmpty(const std::vector<Cell> &openList)
 {
     Cell emptyCell{-1, -1, -1, nullptr, -1, -1};
     for (const auto &cell : openList)
@@ -129,11 +141,11 @@ void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cel
                 while (current != nullptr)
                 {
                     printCell("Current", *current);
-                    finalPath.push_back(*current);
+                    finalPathIndex.push_back(*current);
                     current = current->parent;
                 }
 
-                std::reverse(finalPath.begin(), finalPath.end());
+                std::reverse(finalPathIndex.begin(), finalPathIndex.end());
                 printPath(); // Call to print the path
                 return;      // Correct exit
             }
@@ -184,13 +196,60 @@ void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cel
 void AStar::printPath()
 {
     std::cout << "Printing path\n";
-    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    for (auto It = finalPathIndex.begin(); It != finalPathIndex.end(); It++)
     {
-        std::cout << "(" << It->x << ", " << It->y << ")\n";
+        std::cout << "(" << It->x << ", " << It->y << ", "<< It->value<< ")\n";
     }
     std::cout << "Finished printing path\n";
 }
-/*void AStarReactivePath
-    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
 
- */
+
+void AStar::translateIdxToCoords()
+{
+    for (auto It = finalPathIndex.begin(); It != finalPathIndex.end(); ++It)
+    {
+        // Check if next iterator is within bounds
+        auto nextIt = std::next(It);
+        bool hasNext = nextIt != finalPathIndex.end();
+
+        // Convert cell coordinates to pixel coordinates
+        float xPixel = cellWidth / 2 + cellWidth * It->x;
+        float yPixel = cellHeight / 2 + cellHeight * It->y;
+
+        // Create new Coordinate object
+        Coordinate newCoord;
+        newCoord.x = xPixel;
+        newCoord.y = yPixel;
+
+        // Calculate angle if next coordinate exists
+        if (hasNext)
+        {
+            float dx = nextIt->x - It->x;
+            float dy = nextIt->y - It->y;
+            
+            // Calculate angle in radians
+            float angleRad = std::atan2(dy, dx);
+            
+            // Convert radians to degrees
+            float angleDeg = angleRad * (180.0 / M_PI);
+            newCoord.angleToNext = angleDeg;
+        }
+        else
+        {
+            // If there is no next coordinate, set a default or sentinel value
+            newCoord.angleToNext = -100000;
+        }
+
+        // Add the Coordinate to the finalPathCoords
+        finalPathCoords.push_back(newCoord);
+    }
+
+    // Print the final path coordinates and angles
+    std::cout << "Printing path\n";
+    for (const auto &coord : finalPathCoords)
+    {
+        std::cout << "(" << coord.x << ", " << coord.y << ", " << coord.angleToNext << ")\n";
+    }
+    std::cout << "Finished printing path\n";
+}
+

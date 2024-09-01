@@ -31,6 +31,7 @@ int main() {
     start.parent = nullptr;
     start.x = 0;
     start.y = 0;
+    start.value = 10;
 
     Cell end;
     end.g = 0;
@@ -42,10 +43,12 @@ int main() {
 
     std::cout << map[7][0] << "\n";
 
-    AStar aSearchObj;
+    AStar aSearchObj(600, 300, (float)map.size(), (float)map[0].size());
     aSearchObj.AStarSearchBasic(map, start, end);
 
     aSearchObj.printPath();
+
+    aSearchObj.translateIdxToCoords();
     
     
     return 0;
