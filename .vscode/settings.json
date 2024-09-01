@@ -83,6 +83,7 @@
         "xutility": "cpp",
         "numbers": "cpp",
         "condition_variable": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "queue": "cpp"
     }
 }

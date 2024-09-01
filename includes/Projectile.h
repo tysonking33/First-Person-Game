@@ -17,6 +17,9 @@ public:
     void OnCollision();   //Defines what happens when the projectile hits an object (e.g., apply damage, trigger explosion).
     void Spawn();     //Initializes the projectile’s position, velocity, and other properties when it is fired.
     void Destroy();   //Handles cleanup when the projectile’s lifespan ends or it collides with something.
+
+    Projectile(glm::vec3 startPosition, glm::vec3 projectileVelocity);
+
 protected:
     glm::vec3 position;
     glm::vec3 velocity;

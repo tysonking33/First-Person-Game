@@ -1,0 +1,2079 @@
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1,},   {-1, 0},    {-1, 1},
+        {0,-1,},                {0, 1},
+        {1,-1,},    {1, 0},     {1, 1}
+    };
+    for (int i = 0; i < (int)neighbourMovements.size(); i++)
+    {
+        int neighbourX = neighbourMovements[i][0] + currentCell.x;
+        int neighbourY = neighbourMovements[i][1] + currentCell.y;
+        if ((neighbourX >= 0 && neighbourX < (int)map.size()) && (neighbourY >= 0 && neighbourY < (int)map[0].size()))
+        {
+            if (map[neighbourX][neighbourY] == 0)
+                continue;
+
+            Cell newCell;
+            newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A == B);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end)
+{
+    std::vector<Cell> openList;   // cells for distcover and has not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (openList.empty() == false)
+    {
+        Cell q = findLowestF(openList);
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        auto minIt = successorVector.begin();
+        for (auto iT = successorVector.begin(); iT != successorVector.end(); ++iT)
+        {
+            // Check if the current successor is the end cell
+            if (compareCells(*iT, end))
+            {
+                // End search logic
+                std::cout << "finished search\n";
+
+                // Backtrack from the end cell to the start cell
+                Cell *current = &q;
+                while (current != nullptr)
+                {
+                    finalPath.push_back(*current);
+                    current = current->parent;
+                }
+
+                // Reverse the final path to get the correct order from start to end
+                std::reverse(finalPath.begin(), finalPath.end());
+                return;
+            }
+
+            // Find the current successor in the open and closed lists
+            Cell cellInOpenList = findCell(openList, *iT);
+            Cell cellInClosedList = findCell(closedList, *iT);
+
+            // Updated logic to evaluate and possibly update the successor cells
+            if (!checkEmptyCell(cellInOpenList) && cellInOpenList.f > iT->f)
+            {
+                // Update the cell in the open list
+                openList.erase(std::remove(openList.begin(), openList.end(), cellInOpenList), openList.end());
+                openList.push_back(*iT);
+            }
+            else if (!checkEmptyCell(cellInClosedList) && cellInClosedList.f > iT->f)
+            {
+                // Move cell from closed list to open list for reevaluation
+                closedList.erase(std::remove(closedList.begin(), closedList.end(), cellInClosedList), closedList.end());
+                openList.push_back(*iT);
+            }
+            else if (checkEmptyCell(cellInOpenList) && checkEmptyCell(cellInClosedList))
+            {
+                // If the cell is in neither list, add it to the open list
+                openList.push_back(*iT);
+            }
+        }
+
+        // Add q to the closed list after evaluating all successors
+        closedList.push_back(q);
+    }
+
+    std::cout << "finished search\n";
+}
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.parent = nullptr;
+    end.x = 0;
+    end.y = 7;
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1,},   {-1, 0},    {-1, 1},
+        {0,-1,},                {0, 1},
+        {1,-1,},    {1, 0},     {1, 1}
+    };
+    for (int i = 0; i < (int)neighbourMovements.size(); i++)
+    {
+        int neighbourX = neighbourMovements[i][0] + currentCell.x;
+        int neighbourY = neighbourMovements[i][1] + currentCell.y;
+        if ((neighbourX >= 0 && neighbourX < (int)map.size()) && (neighbourY >= 0 && neighbourY < (int)map[0].size()))
+        {
+            if (map[neighbourX][neighbourY] == 0)
+                continue;
+
+            Cell newCell;
+            newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A == B);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end)
+{
+    std::vector<Cell> openList;   // cells for distcover and has not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (openList.empty() == false)
+    {
+        Cell q = findLowestF(openList);
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        auto minIt = successorVector.begin();
+        for (auto iT = successorVector.begin(); iT != successorVector.end(); ++iT)
+        {
+            // Check if the current successor is the end cell
+            if (compareCells(*iT, end))
+            {
+                // End search logic
+                std::cout << "finished search\n";
+
+                // Backtrack from the end cell to the start cell
+                Cell *current = &q;
+                while (current != nullptr)
+                {
+                    finalPath.push_back(*current);
+                    current = current->parent;
+                }
+
+                // Reverse the final path to get the correct order from start to end
+                std::reverse(finalPath.begin(), finalPath.end());
+                return;
+            }
+
+            // Find the current successor in the open and closed lists
+            Cell cellInOpenList = findCell(openList, *iT);
+            Cell cellInClosedList = findCell(closedList, *iT);
+
+            // Updated logic to evaluate and possibly update the successor cells
+            if (!checkEmptyCell(cellInOpenList) && cellInOpenList.f > iT->f)
+            {
+                // Update the cell in the open list
+                openList.erase(std::remove(openList.begin(), openList.end(), cellInOpenList), openList.end());
+                openList.push_back(*iT);
+            }
+            else if (!checkEmptyCell(cellInClosedList) && cellInClosedList.f > iT->f)
+            {
+                // Move cell from closed list to open list for reevaluation
+                closedList.erase(std::remove(closedList.begin(), closedList.end(), cellInClosedList), closedList.end());
+                openList.push_back(*iT);
+            }
+            else if (checkEmptyCell(cellInOpenList) && checkEmptyCell(cellInClosedList))
+            {
+                // If the cell is in neither list, add it to the open list
+                openList.push_back(*iT);
+            }
+        }
+
+        // Add q to the closed list after evaluating all successors
+        closedList.push_back(q);
+    }
+
+    std::cout << "finished search\n";
+}
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.parent = nullptr;
+    end.x = 7;
+    end.y = 0;
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1,},   {-1, 0},    {-1, 1},
+        {0,-1,},                {0, 1},
+        {1,-1,},    {1, 0},     {1, 1}
+    };
+    for (int i = 0; i < (int)neighbourMovements.size(); i++)
+    {
+        int neighbourX = neighbourMovements[i][0] + currentCell.x;
+        int neighbourY = neighbourMovements[i][1] + currentCell.y;
+        if ((neighbourX >= 0 && neighbourX < (int)map.size()) && (neighbourY >= 0 && neighbourY < (int)map[0].size()))
+        {
+            if (map[neighbourX][neighbourY] == 0)
+                continue;
+
+            Cell newCell;
+            newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A == B);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end)
+{
+    std::vector<Cell> openList;   // cells for discovery and have not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (!openList.empty())
+    {
+        Cell q = findLowestF(openList);
+
+        if (compareCells(q, end))
+        {
+            std::cout << "Finished search\n";
+
+            // Backtrack from the end cell to the start cell
+            Cell* current = &q;
+            while (current != nullptr)
+            {
+                finalPath.push_back(*current);
+                current = current->parent;
+            }
+
+            std::reverse(finalPath.begin(), finalPath.end());
+            return;
+        }
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        for (auto &successor : successorVector)
+        {
+            Cell cellInOpenList = findCell(openList, successor);
+            Cell cellInClosedList = findCell(closedList, successor);
+
+            if (!checkEmptyCell(cellInOpenList) && cellInOpenList.f > successor.f)
+            {
+                openList.erase(std::remove(openList.begin(), openList.end(), cellInOpenList), openList.end());
+                openList.push_back(successor);
+            }
+            else if (!checkEmptyCell(cellInClosedList) && cellInClosedList.f > successor.f)
+            {
+                closedList.erase(std::remove(closedList.begin(), closedList.end(), cellInClosedList), closedList.end());
+                openList.push_back(successor);
+            }
+            else if (checkEmptyCell(cellInOpenList) && checkEmptyCell(cellInClosedList))
+            {
+                openList.push_back(successor);
+            }
+        }
+
+        closedList.push_back(q);
+    }
+
+    std::cout << "No path found\n";
+}
+
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.parent = nullptr;
+    end.x = 7;
+    end.y = 0;
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1,},   {-1, 0},    {-1, 1},
+        {0,-1,},                {0, 1},
+        {1,-1,},    {1, 0},     {1, 1}
+    };
+    for (int i = 0; i < (int)neighbourMovements.size(); i++)
+    {
+        int neighbourX = neighbourMovements[i][0] + currentCell.x;
+        int neighbourY = neighbourMovements[i][1] + currentCell.y;
+        if ((neighbourX >= 0 && neighbourX < (int)map.size()) && (neighbourY >= 0 && neighbourY < (int)map[0].size()))
+        {
+            if (map[neighbourX][neighbourY] == 0)
+                continue;
+
+            Cell newCell;
+            newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A == B);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end)
+{
+    std::vector<Cell> openList;   // cells for discovery and have not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (!openList.empty())
+    {
+        Cell q = findLowestF(openList);
+
+        if (compareCells(q, end))
+        {
+            std::cout << "Finished search\n";
+
+            // Backtrack from the end cell to the start cell
+            Cell* current = &q;
+            while (current != nullptr)
+            {
+                finalPath.push_back(*current);
+                current = current->parent;
+            }
+
+            std::reverse(finalPath.begin(), finalPath.end());
+            return;
+        }
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        for (auto &successor : successorVector)
+        {
+            Cell cellInOpenList = findCell(openList, successor);
+            Cell cellInClosedList = findCell(closedList, successor);
+
+            if (!checkEmptyCell(cellInOpenList) && cellInOpenList.f > successor.f)
+            {
+                openList.erase(std::remove(openList.begin(), openList.end(), cellInOpenList), openList.end());
+                openList.push_back(successor);
+            }
+            else if (!checkEmptyCell(cellInClosedList) && cellInClosedList.f > successor.f)
+            {
+                closedList.erase(std::remove(closedList.begin(), closedList.end(), cellInClosedList), closedList.end());
+                openList.push_back(successor);
+            }
+            else if (checkEmptyCell(cellInOpenList) && checkEmptyCell(cellInClosedList))
+            {
+                openList.push_back(successor);
+            }
+        }
+
+        closedList.push_back(q);
+    }
+
+    std::cout << "No path found\n";
+}
+
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.parent = nullptr;
+    end.x = 7;
+    end.y = 0;
+
+    std::vector<std::vector<int>> map2 {
+        {0, 1, 2, 3, 4},
+        {5, 6, 7, 8, 9},
+        {10, 11, 12, 13, 14},
+        {15, 16, 17, 18, 19},
+        {20, 21, 22, 23, 24},
+        {25, 26, 27, 28, 29},
+        {30, 31, 32, 33, 34},
+        {35, 36, 37, 38, 39},
+    };
+
+    std::cout << map2[7][0] << "\n";
+    std::cout << map[7][0] << "\n";
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1,},   {-1, 0},    {-1, 1},
+        {0,-1,},                {0, 1},
+        {1,-1,},    {1, 0},     {1, 1}
+    };
+    for (int i = 0; i < (int)neighbourMovements.size(); i++)
+    {
+        int neighbourX = neighbourMovements[i][0] + currentCell.x;
+        int neighbourY = neighbourMovements[i][1] + currentCell.y;
+        if ((neighbourX >= 0 && neighbourX < (int)map.size()) && (neighbourY >= 0 && neighbourY < (int)map[0].size()))
+        {
+            if (map[neighbourX][neighbourY] == 0)
+                continue;
+
+            Cell newCell;
+            newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A.x == B.x) && (A.y == B.y);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end)
+{
+    std::vector<Cell> openList;   // cells for discovery and have not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (!openList.empty())
+    {
+        Cell q = findLowestF(openList);
+
+        if (compareCells(q, end))
+        {
+            std::cout << "Finished search\n";
+
+            // Backtrack from the end cell to the start cell
+            Cell* current = &q;
+            while (current != nullptr)
+            {
+                finalPath.push_back(*current);
+                current = current->parent;
+            }
+
+            std::reverse(finalPath.begin(), finalPath.end());
+            return;
+        }
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        for (auto &successor : successorVector)
+        {
+            Cell cellInOpenList = findCell(openList, successor);
+            Cell cellInClosedList = findCell(closedList, successor);
+
+            if (!checkEmptyCell(cellInOpenList) && cellInOpenList.f > successor.f)
+            {
+                openList.erase(std::remove(openList.begin(), openList.end(), cellInOpenList), openList.end());
+                openList.push_back(successor);
+            }
+            else if (!checkEmptyCell(cellInClosedList) && cellInClosedList.f > successor.f)
+            {
+                closedList.erase(std::remove(closedList.begin(), closedList.end(), cellInClosedList), closedList.end());
+                openList.push_back(successor);
+            }
+            else if (checkEmptyCell(cellInOpenList) && checkEmptyCell(cellInClosedList))
+            {
+                openList.push_back(successor);
+            }
+        }
+
+        closedList.push_back(q);
+    }
+
+    std::cout << "No path found\n";
+}
+
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.parent = nullptr;
+    end.x = 7;
+    end.y = 0;
+
+    std::vector<std::vector<int>> map2 {
+        {0, 1, 2, 3, 4},
+        {5, 6, 7, 8, 9},
+        {10, 11, 12, 13, 14},
+        {15, 16, 17, 18, 19},
+        {20, 21, 22, 23, 24},
+        {25, 26, 27, 28, 29},
+        {30, 31, 32, 33, 34},
+        {35, 36, 37, 38, 39},
+    };
+
+    std::cout << map2[7][0] << "\n";
+    std::cout << map[7][0] << "\n";
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1},   {-1, 0},    {-1, 1},
+        {0,-1},                {0, 1},
+        {1,-1},    {1, 0},     {1, 1}
+    };
+
+    for (const auto& move : neighbourMovements)
+    {
+        int neighbourX = move[0] + currentCell.x;
+        int neighbourY = move[1] + currentCell.y;
+        if (neighbourX >= 0 && neighbourX < (int)map.size() && neighbourY >= 0 && neighbourY < (int)map[0].size())
+        {
+            if (map[neighbourX][neighbourY] == 1)
+                continue; // This cell is blocked
+
+            Cell newCell;
+            newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A.x == B.x) && (A.y == B.y);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end)
+{
+    std::vector<Cell> openList;   // cells for discovery and have not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (!openList.empty())
+    {
+        Cell q = findLowestF(openList);
+
+        if (compareCells(q, end))
+        {
+            std::cout << "Finished search\n";
+
+            // Backtrack from the end cell to the start cell
+            Cell* current = &q;
+            while (current != nullptr)
+            {
+                finalPath.push_back(*current);
+                current = current->parent;
+            }
+
+            std::reverse(finalPath.begin(), finalPath.end());
+            return;
+        }
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        for (auto &successor : successorVector)
+        {
+            Cell cellInOpenList = findCell(openList, successor);
+            Cell cellInClosedList = findCell(closedList, successor);
+
+            if (!checkEmptyCell(cellInOpenList) && cellInOpenList.f > successor.f)
+            {
+                openList.erase(std::remove(openList.begin(), openList.end(), cellInOpenList), openList.end());
+                openList.push_back(successor);
+            }
+            else if (!checkEmptyCell(cellInClosedList) && cellInClosedList.f > successor.f)
+            {
+                closedList.erase(std::remove(closedList.begin(), closedList.end(), cellInClosedList), closedList.end());
+                openList.push_back(successor);
+            }
+            else if (checkEmptyCell(cellInOpenList) && checkEmptyCell(cellInClosedList))
+            {
+                openList.push_back(successor);
+            }
+        }
+
+        closedList.push_back(q);
+    }
+
+    std::cout << "No path found\n";
+}
+
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.parent = nullptr;
+    end.x = 7;
+    end.y = 0;
+
+    std::vector<std::vector<int>> map2 {
+        {0, 1, 2, 3, 4},
+        {5, 6, 7, 8, 9},
+        {10, 11, 12, 13, 14},
+        {15, 16, 17, 18, 19},
+        {20, 21, 22, 23, 24},
+        {25, 26, 27, 28, 29},
+        {30, 31, 32, 33, 34},
+        {35, 36, 37, 38, 39},
+    };
+
+    std::cout << map2[7][0] << "\n";
+    std::cout << map[7][0] << "\n";
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1},   {-1, 0},    {-1, 1},
+        {0,-1},                {0, 1},
+        {1,-1},    {1, 0},     {1, 1}
+    };
+
+    for (const auto& move : neighbourMovements)
+    {
+        int neighbourX = move[0] + currentCell.x;
+        int neighbourY = move[1] + currentCell.y;
+        if (neighbourX >= 0 && neighbourX < (int)map.size() && neighbourY >= 0 && neighbourY < (int)map[0].size())
+        {
+            if (map[neighbourX][neighbourY] == 1)
+                continue; // This cell is blocked
+
+            Cell newCell;
+            newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A.x == B.x) && (A.y == B.y);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end)
+{
+    std::vector<Cell> openList;   // cells for discovery and have not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (!openList.empty())
+    {
+        Cell q = findLowestF(openList);
+
+        if (compareCells(q, end))
+        {
+            std::cout << "Finished search\n";
+            // Backtrack from the end cell to the start cell
+            Cell* current = &q;
+            while (current != nullptr)
+            {
+                finalPath.push_back(*current);
+                current = current->parent;
+            }
+
+            std::reverse(finalPath.begin(), finalPath.end());
+            printPath();  // Call to print the path
+            return;
+        }
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        for (auto &successor : successorVector)
+        {
+            Cell cellInOpenList = findCell(openList, successor);
+            Cell cellInClosedList = findCell(closedList, successor);
+
+            if (!checkEmptyCell(cellInOpenList) && cellInOpenList.f > successor.f)
+            {
+                openList.erase(std::remove(openList.begin(), openList.end(), cellInOpenList), openList.end());
+                openList.push_back(successor);
+                std::cout << "Updating openList with: (" << successor.x << ", " << successor.y << ")\n";
+            }
+            else if (!checkEmptyCell(cellInClosedList) && cellInClosedList.f > successor.f)
+            {
+                closedList.erase(std::remove(closedList.begin(), closedList.end(), cellInClosedList), closedList.end());
+                openList.push_back(successor);
+                std::cout << "Updating openList with: (" << successor.x << ", " << successor.y << ")\n";
+            }
+            else if (checkEmptyCell(cellInOpenList) && checkEmptyCell(cellInClosedList))
+            {
+                openList.push_back(successor);
+                std::cout << "Adding to openList: (" << successor.x << ", " << successor.y << ")\n";
+            }
+        }
+
+        closedList.push_back(q);
+    }
+
+    std::cout << "No path found\n";
+}
+
+
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.parent = nullptr;
+    end.x = 7;
+    end.y = 0;
+
+    std::vector<std::vector<int>> map2 {
+        {0, 1, 2, 3, 4},
+        {5, 6, 7, 8, 9},
+        {10, 11, 12, 13, 14},
+        {15, 16, 17, 18, 19},
+        {20, 21, 22, 23, 24},
+        {25, 26, 27, 28, 29},
+        {30, 31, 32, 33, 34},
+        {35, 36, 37, 38, 39},
+    };
+
+    std::cout << map2[7][0] << "\n";
+    std::cout << map[7][0] << "\n";
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n
+"
+AStar.cpp\n
+#ifndef ASTAR_H
+#define ASTAR_H
+
+#include <vector>
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <math.h>
+#include <set>
+#include <queue>
+
+struct Cell
+{
+    float g; // movement cost from starting point to a given square ont he grid, follwing the current path generated
+    float h; // estimate movement cost from given squat to final destination
+    float f; // sum of g and h
+    struct Cell *parent;
+    float x;
+    float y;
+
+    // Add the equality operator to compare Cell objects
+    bool operator==(const Cell& other) const {
+        return x == other.x && y == other.y && g == other.g &&
+               h == other.h && f == other.f && parent == other.parent;
+    }
+};
+
+class AStar
+{
+public:
+    void AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end);
+
+    void printPath();
+
+    
+
+    std::vector<Cell> finalPath;
+};
+
+#endif"
+\n\n
+"
+Astar.cpp\n
+#include "AStar.h"
+
+float euclideanDistance(Cell currentCell, Cell otherCell)
+{
+    return sqrt(pow(currentCell.x - otherCell.x, 2) + pow(currentCell.y - otherCell.y, 2));
+}
+
+Cell findLowestF(std::vector<Cell> &openList)
+{
+    if (openList.empty() == true)
+    {
+        std::cerr << "openList is empty\n";
+        return Cell{-1, -1, -1, nullptr, -1, -1}; // Return an "empty" cell
+    }
+
+    auto minIt = openList.begin();
+    for (auto iT = openList.begin(); iT != openList.end(); ++iT)
+    {
+        if (iT->f < minIt->f)
+        {
+            minIt = iT;
+        }
+    }
+
+    Cell minFCell = *minIt;
+
+    openList.erase(minIt);
+
+    return minFCell;
+}
+
+std::vector<Cell> findSuccessor(std::vector<std::vector<int>> &map, Cell &currentCell, Cell start, Cell end)
+{
+    std::vector<Cell> successorVector;
+    std::vector<std::vector<int>> neighbourMovements={
+        {-1,-1},   {-1, 0},    {-1, 1},
+        {0,-1},                {0, 1},
+        {1,-1},    {1, 0},     {1, 1}
+    };
+
+    for (const auto& move : neighbourMovements)
+    {
+        int neighbourX = move[0] + currentCell.x;
+        int neighbourY = move[1] + currentCell.y;
+        if (neighbourX >= 0 && neighbourX < (int)map.size() && neighbourY >= 0 && neighbourY < (int)map[0].size())
+        {
+            if (map[neighbourX][neighbourY] == 1)
+                continue; // This cell is blocked
+
+            Cell newCell;
+        newCell.parent = &currentCell;
+            newCell.x = neighbourX;
+            newCell.y = neighbourY;
+            newCell.g = currentCell.g + euclideanDistance(currentCell, newCell);
+            newCell.h = euclideanDistance(newCell, end);
+            newCell.f = newCell.g + newCell.h;
+
+            successorVector.push_back(newCell);
+        }
+    }
+
+    return successorVector;
+}
+
+
+bool compareCells(Cell A, Cell B)
+{
+    return (A.x == B.x) && (A.y == B.y);
+}
+
+bool checkEmptyCell(Cell A)
+{
+    return A == Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+Cell findCell(std::vector<Cell> cellList, Cell target)
+{
+    for (auto iT = cellList.begin(); iT != cellList.end(); ++iT)
+    {
+        if (compareCells(*iT, target) == true)
+        {
+            return *iT;
+        }
+    }
+    return Cell{-1, -1, -1, nullptr, -1, -1};
+}
+
+
+
+void AStar::AStarSearchBasic(std::vector<std::vector<int>> &map, Cell start, Cell end) {
+    std::vector<Cell> openList;   // cells for discovery and have not been discovered yet
+    std::vector<Cell> closedList; // cells already evaluated
+
+    openList.push_back(start);
+
+    while (!openList.empty()) {
+        Cell q = findLowestF(openList);
+
+        if (compareCells(q, end)) {
+            std::cout << "Finished search\n";
+
+            // Backtrack from the end cell to the start cell
+            Cell* current = &q;
+            std::cout << "current: " << current->x << ", " << current->y << std::endl;
+            while (current != nullptr) {
+                finalPath.push_back(*current);
+                current = current->parent;
+            }
+
+            std::reverse(finalPath.begin(), finalPath.end());
+            printPath();  // Call to print the path
+            return;
+        }
+
+        std::vector<Cell> successorVector = findSuccessor(map, q, start, end);
+
+        for (auto &successor : successorVector) {
+            bool inOpenList = false;
+            bool inClosedList = false;
+
+            // Check if the successor is in the open list
+            for (auto &cell : openList) {
+                if (compareCells(cell, successor)) {
+                    inOpenList = true;
+                    if (cell.f > successor.f) {
+                        // Update the cell in openList with the better path
+                        cell = successor;
+                        std::cout << "Updated openList cell: (" << successor.x << ", " << successor.y << ")\n";
+                    }
+                    break;
+                }
+            }
+
+            // Check if the successor is in the closed list
+            for (auto &cell : closedList) {
+                if (compareCells(cell, successor)) {
+                    inClosedList = true;
+                    if (cell.f > successor.f) {
+                        // Remove from closedList and add to openList with the better path
+                        closedList.erase(std::remove(closedList.begin(), closedList.end(), cell), closedList.end());
+                        openList.push_back(successor);
+                        std::cout << "Moved from closedList to openList: (" << successor.x << ", " << successor.y << ")\n";
+                    }
+                    break;
+                }
+            }
+
+            // Add to openList if not already present
+            if (!inOpenList && !inClosedList) {
+                openList.push_back(successor);
+                std::cout << "Added to openList: (" << successor.x << ", " << successor.y << ")\n";
+            }
+        }
+
+        closedList.push_back(q);
+        std::cout << "Moved to closedList: (" << q.x << ", " << q.y << ")\n";
+    }
+
+    std::cout << "No path found\n";
+}
+
+
+void AStar::printPath()
+{
+    std::cout << "printing path\n";
+    for (auto It = finalPath.begin(); It != finalPath.end(); It++)
+    {
+        std::cout << "(" << It->x << ", " << It->y << ")\n";
+    }
+    std::cout << "finished printing path\n";
+}
+
+/*void AStarReactivePath
+    check for 3 cell ahead, max, and conduct a star with neightbours 3 cells away, if any cells are blocking these cells, disqualify the cells
+
+ */
+"
+\n\n
+"
+main.cpp\n
+#include "AStar.h"
+
+int main() {
+    std::vector<std::vector<int>> map = {
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 0, 1, 0},
+        {0, 1, 0, 1, 0},
+        {0, 1, 0, 0, 0},
+        {0, 1, 0, 1, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    Cell start;
+    start.g = 0;
+    start.h = 0;
+    start.f = 0;
+    start.parent = nullptr;
+    start.x = 0;
+    start.y = 0;
+
+    Cell end;
+    end.g = 0;
+    end.h = 0;
+    end.f = 0;
+    end.x = 7;
+    end.y = 0;
+
+
+    std::cout << map[7][0] << "\n";
+
+    AStar aSearchObj;
+    aSearchObj.AStarSearchBasic(map, start, end);
+
+    aSearchObj.printPath();
+    
+    
+    return 0;
+}
+"
+\n\n

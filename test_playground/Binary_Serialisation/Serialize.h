@@ -11,8 +11,6 @@ public:
 
     void saveToFile(TestObject &object,const std::string &filename);
     void loadFromFile(TestObject &object, const std::string &filename);
-    
-    
 };
 
 

@@ -207,6 +207,7 @@ void Game::render()
     shader->use();
     renderer->DrawPlane(*shader, *player->camera);
     renderer->DrawWall(*shader, *player->camera);
+    
 
     renderer->DrawCube(*shader, *player->camera, enemyCube->getCubeVector(), Green);
 
