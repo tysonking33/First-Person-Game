@@ -13,6 +13,11 @@ Game::Game()
     drawBullet = true;
     enemyPosition = {0.f, 1.f, 3.f};
     enemyCube = new Cube(enemyPosition, enemySize);
+    crosshairPosition = player->camera->getPosition() + 0.1f * player->camera->getFront();
+    crosshairCube = new Cube(crosshairPosition, 0.001f);
+    crosshairSize = 0.001f;
+
+
 }
 
 void Game::init()
@@ -55,6 +60,7 @@ void Game::init()
     renderer = new Renderer();
 
     glEnable(GL_DEPTH_TEST);
+
 }
 
 // calculate mouse position
@@ -157,10 +163,13 @@ void Game::processInput(float deltaTime)
     {
         std::cout << "Left mouse button clicked\n";
 
-        glm::vec3 crosshairPosition = player->camera->getPosition() + 0.1f * player->camera->getFront();
+        glm::vec3 startPosition = player->getCamera()->getPosition();
+        glm::vec3 direction = player->getCamera()->getFront();
+        float speed = 10.0f;
 
-        Cube *crosshairCube = new Cube(crosshairPosition, 0.001f);
-        renderer->DrawCube(*shader, *player->camera, crosshairCube->getCubeVector(), White);
+        // Create the projectile and add it to the vector
+        Projectile* newProjectile = new Projectile(startPosition, direction, speed);
+        projectiles.push_back(newProjectile);
 
         if (renderer->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(enemyCube->getCubeVector())) == true)
         {
@@ -197,27 +206,40 @@ void Game::update(float deltaTime)
         }
     }
     enemyCube->UpdateCube(enemySize, enemyPosition);
-    renderer->DrawCube(*shader, *player->camera, enemyCube->getCubeVector(), Green);
+    for (auto it = projectiles.begin(); it != projectiles.end();) {
+        (*it)->Update(deltaTime);
+        if ((*it)->isExpired()) {
+            delete *it;         // Free the memory
+            it = projectiles.erase(it); // Remove the projectile from the vector
+        } else {
+            ++it;
+        }
+    }
 }
 
 void Game::render()
 {
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader->use();
     renderer->DrawPlane(*shader, *player->camera);
     renderer->DrawWall(*shader, *player->camera);
     
 
-    renderer->DrawCube(*shader, *player->camera, enemyCube->getCubeVector(), Green);
+    renderer->DrawCubeEnemy(*shader, *player->camera, enemyCube->getCubeVector(), Green);
 
+    crosshairPosition = player->camera->getPosition() + 0.1f * player->camera->getFront();
+    crosshairCube->UpdateCube(crosshairSize, crosshairPosition);
+    renderer->DrawCubeBasic(*shader, *player->camera, crosshairCube->getCubeVector(), White);
+    for (auto projectile : projectiles) {
+        renderer->DrawCubeBasic(*shader, *player->camera, projectile->getCube()->getCubeVector(), Yellow);
+    }
     glfwSwapBuffers(window);
 }
 
 template <typename Func, typename T1, typename T2, typename... Args>
 bool Game::DoThingForTimeSec(Func func, float seconds, float startTime, Args... args)
 {
-    if (startTime - static_cast<float> glfwGetTime() < seconds)
+    if (startTime - static_cast<float>(glfwGetTime()) < seconds)
     {
         func(args...);
         return true; // still running

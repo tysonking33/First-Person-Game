@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "Player.h"
 #include "Renderer.h"
+#include "Projectile.h"
 
 #include<functional>
 
@@ -35,6 +36,11 @@ private:
 
 
     Cube *enemyCube;
+    glm::vec3 crosshairPosition;
+    Cube *crosshairCube;
+    float crosshairSize;
+    std::vector<Projectile*> projectiles; // Store multiple projectiles
+
 
    
     template<typename Func, typename T1, typename T2, typename ...Args>

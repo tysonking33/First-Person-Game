@@ -104,7 +104,7 @@ void Renderer::DrawStick(Shader &shader, Camera &camera, glm::vec3 start, glm::v
 
 
 
-void Renderer::DrawCube(Shader &shader, Camera &camera, std::vector<float> vertices, glm::vec3 planeColor)
+void Renderer::DrawCubeEnemy(Shader &shader, Camera &camera, std::vector<float> vertices, glm::vec3 planeColor)
 {
 
     if (cubeHitStatus == true)
@@ -155,6 +155,46 @@ void Renderer::ChangeHitStatus(bool hit)
     cubeHitStatus = hit;
 }
 
+
+void Renderer::DrawCubeBasic(Shader &shader, Camera &camera, std::vector<float> vertices, glm::vec3 planeColor)
+{
+
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    shader.use();
+    shader.setVec3("planeColor", planeColor); // Set the plane color
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+
+    //std::cout << "successfully drawCube\n";
+}
 
 //abccda
 /*pseudo code
@@ -285,7 +325,6 @@ std::vector<Vertex> Renderer::convertPlainArrayToCubeFormat(std::vector<float> o
         final_vector.push_back(current_Vertex);
     }
     return final_vector;
-
 }
 
 //checking if the point of interscetion in within the vertexs of the bounded plane not just the infinite plane
