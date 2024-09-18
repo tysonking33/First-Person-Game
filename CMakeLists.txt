@@ -42,26 +42,26 @@ set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../includes)
 set(SOURCES 
     ${SOURCE_DIR}/Camera.cpp
     ${SOURCE_DIR}/Game.cpp
-    ${SOURCE_DIR}/Math_Utils.cpp
     ${SOURCE_DIR}/Player.cpp
     ${SOURCE_DIR}/Renderer.cpp
     ${SOURCE_DIR}/Shader.cpp
     ${SOURCE_DIR}/Main.cpp
     ${SOURCE_DIR}/Cube.cpp
     ${SOURCE_DIR}/Projectile.cpp
+    ${SOURCE_DIR}/Physics_Engine.cpp
 )
 
 # Add all header files
 set(headers
     ${INCLUDE_DIR}/Camera.h
     ${INCLUDE_DIR}/Game.h
-    ${INCLUDE_DIR}/Math_Utils.h
     ${INCLUDE_DIR}/Player.h
     ${INCLUDE_DIR}/Renderer.h
     ${INCLUDE_DIR}/Shader.h
     ${INCLUDE_DIR}/stb_image.h
     ${INCLUDE_DIR}/Cube.h
     ${INCLUDE_DIR}/Projectile.h
+    ${INCLUDE_DIR}/Physics_Engine.h
 
 )
 

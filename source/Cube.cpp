@@ -1,10 +1,22 @@
 #include "../includes/Cube.h"
 
-
 Cube::Cube(glm::vec3 newCubePosition, float newCubeSize) 
     : cubePosition(newCubePosition), cubeSize(newCubeSize) {
     // Allocate memory for cubeVector
     cubeVector = GenerateCube(cubeSize, cubePosition);
+    cubeColor = Green;
+    defaultColor = Green;
+    hitColor = Red;
+
+}
+
+Cube::Cube(glm::vec3 newCubePosition, float newCubeSize, glm::vec3 newDefaultColor, glm::vec3 newHitColor) 
+    : cubePosition(newCubePosition), cubeSize(newCubeSize) {
+    // Allocate memory for cubeVector
+    cubeVector = GenerateCube(cubeSize, cubePosition);
+    cubeColor = newDefaultColor;
+    defaultColor = newDefaultColor;
+    hitColor = newHitColor;
 }
 
 
@@ -62,7 +74,7 @@ std::vector<float> Cube::GenerateCube(float size, glm::vec3 position) {
 }
 
 void Cube::UpdateCube(float size, glm::vec3 position) {
-    float halfSize = size / 2.0f;
+    //float halfSize = size / 2.0f;
 
     // Clear and update cubeVector based on new size and position
     cubeVector.clear();
@@ -70,6 +82,7 @@ void Cube::UpdateCube(float size, glm::vec3 position) {
 
     // Update the internal position and size
     cubePosition = position;
+    setCubePosition(position);
     cubeSize = size;
 }
 
@@ -91,4 +104,28 @@ void Cube::setCubeSize(float size) {
 
 std::vector<float> Cube::getCubeVector(){
     return cubeVector;
+}
+
+
+void Cube::ChangeHitStatus(bool hit)
+{
+    cubeHitStatus = hit;
+    if (cubeHitStatus)
+    {
+        cubeColor = hitColor;
+    }
+    else
+    {
+        cubeColor = defaultColor;
+    }
+}
+
+glm::vec3 Cube::GetCubeColor()
+{
+    return cubeColor;
+}
+
+void Cube::setCubeColor(glm::vec3 newColor)
+{
+    cubeColor = newColor;
 }

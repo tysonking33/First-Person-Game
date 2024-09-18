@@ -7,6 +7,7 @@
 #include "Player.h"
 #include "Renderer.h"
 #include "Projectile.h"
+#include "Physics_Engine.h"
 
 #include<functional>
 
@@ -27,6 +28,7 @@ private:
     Shader *shader;  // Declaration only
     Player *player;
     Renderer *renderer;
+    Physics_Engine *physics;
 
     bool drawBullet;
     bool bulletHit;
@@ -39,12 +41,16 @@ private:
     glm::vec3 crosshairPosition;
     Cube *crosshairCube;
     float crosshairSize;
+    //Enemy *enemy;
     std::vector<Projectile*> projectiles; // Store multiple projectiles
 
 
    
     template<typename Func, typename T1, typename T2, typename ...Args>
     bool DoThingForTimeSec(Func func, float seconds, float startTime, Args... args);
+
+
+    glm::vec2 findCoordinate(std::vector<std::vector<int>> vecmap, glm::vec3 playerPosition, float planeHeight, float planeWidth, float cubeDimensions);
 };
 
 #endif

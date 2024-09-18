@@ -2,11 +2,10 @@
 
 //find new position
 void Projectile::Update(float deltaTime){
-    glm::vec3 newPosition = position + deltaTime * velocity;
+    //glm::vec3 newPosition = projectileCube->getCubePosition() + deltaTime * velocity;
+    glm::vec3 newPosition = projectileCube->getCubePosition() + velocity;
     projectileCube->UpdateCube(cubeSize, newPosition);
-    position = newPosition;
-        age += deltaTime;
-
+    age += deltaTime;
 }
 
 void Projectile::SetVelocity(glm::vec3 direction, float speed){
@@ -27,13 +26,13 @@ bool Projectile::isExpired(){
 
 Projectile::Projectile(glm::vec3 startPosition, glm::vec3 projectileVelocity, float deltaTime){
     startPosition.x += 0.02f;
-    position = startPosition;
     velocity = projectileVelocity;
     creationTime = deltaTime; 
-    cubeSize = 0.01f;
-    projectileCube = new Cube(position, cubeSize);
-    color = Magenta;
-    lifespan = 1.f;
+    cubeSize = 0.1f;
+
+    //cubeSize = 1.01f;
+    projectileCube = new Cube(startPosition, cubeSize, Orange, Pink);
+    lifespan = 20.f;
     age = 0.f;
 }
 
@@ -44,9 +43,15 @@ Cube *Projectile::getCube()
 
 void Projectile::setColor(glm::vec3 newColor)
 {
-    color = newColor;
+   projectileCube->setCubeColor(newColor);
 }
+
 glm::vec3 Projectile::getColor()
 {
-    return color;
+    return projectileCube->GetCubeColor();
+}
+
+void Projectile::projectileHit()
+{
+    projectileCube->ChangeHitStatus(true);
 }

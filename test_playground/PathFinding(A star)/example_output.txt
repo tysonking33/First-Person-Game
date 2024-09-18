@@ -1,0 +1,68 @@
+[H[2J[3J35
+Added to openList: (0, 1)
+Added to openList: (1, 0)
+Added to openList: (1, 1)
+Moved to closedList: (0, 0)
+Moved to closedList: (1, 0)
+Added to openList: (0, 2)
+Added to openList: (1, 2)
+Added to openList: (2, 2)
+Moved to closedList: (1, 1)
+Added to openList: (0, 2)
+Moved to closedList: (0, 1)
+Added to openList: (3, 1)
+Added to openList: (3, 2)
+Moved to closedList: (2, 2)
+Added to openList: (4, 2)
+Moved to closedList: (3, 2)
+Added to openList: (3, 0)
+Added to openList: (4, 0)
+Moved to closedList: (3, 1)
+Added to openList: (5, 2)
+Added to openList: (5, 3)
+Moved to closedList: (4, 2)
+Added to openList: (5, 0)
+Moved to closedList: (4, 0)
+Added to openList: (6, 2)
+Moved to closedList: (5, 2)
+Added to openList: (6, 0)
+Moved to closedList: (5, 0)
+Goal found!
+Printing Cell Current) g: 8.65685, h: 0, f: 8.65685, x: 7, y: 0, value: 35
+Printing Cell Current) g: 7.65685, h: 1, f: 8.65685, x: 6, y: 0, value: 32
+Printing Cell Current) g: 6.65685, h: 2, f: 8.65685, x: 5, y: 0, value: 28
+Printing Cell Current) g: 5.65685, h: 3, f: 8.65685, x: 4, y: 0, value: 25
+Printing Cell Current) g: 4.24264, h: 4.12311, f: 8.36575, x: 3, y: 1, value: 22
+Printing Cell Current) g: 2.82843, h: 5.38516, f: 8.21359, x: 2, y: 2, value: 19
+Printing Cell Current) g: 1.41421, h: 6.08276, f: 7.49698, x: 1, y: 1, value: 16
+Printing Cell Current) g: 0, h: 0, f: 0, x: 0, y: 0, value: 10
+Printing path
+(0, 0, 10)
+(1, 1, 16)
+(2, 2, 19)
+(3, 1, 22)
+(4, 0, 25)
+(5, 0, 28)
+(6, 0, 32)
+(7, 0, 35)
+Finished printing path
+Printing path
+(0, 0, 10)
+(1, 1, 16)
+(2, 2, 19)
+(3, 1, 22)
+(4, 0, 25)
+(5, 0, 28)
+(6, 0, 32)
+(7, 0, 35)
+Finished printing path
+Printing path
+(30, 37.5, 45)
+(90, 112.5, 45)
+(150, 187.5, -45)
+(210, 112.5, -45)
+(270, 37.5, 0)
+(330, 37.5, 0)
+(390, 37.5, 0)
+(450, 37.5, -100000)
+Finished printing path

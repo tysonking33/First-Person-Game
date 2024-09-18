@@ -22,22 +22,21 @@ public:
     void Destroy();   //Handles cleanup when the projectile’s lifespan ends or it collides with something.
 
     Projectile(glm::vec3 startPosition, glm::vec3 projectileVelocity, float deltaTime);
-        Cube *getCube();
+    Cube *getCube();
 
     void setColor(glm::vec3 newColor);
     glm::vec3 getColor();
     bool isExpired();
+    void projectileHit();
 
 
 
 protected:
-    glm::vec3 position;
     glm::vec3 velocity;
     float damage;
     float lifespan;
     float creationTime;
     float cubeSize;
-    glm::vec3 color;
     float age;
     // Other attributes
 };
