@@ -30,18 +30,21 @@ private:
     Renderer *renderer;
     Physics_Engine *physics;
 
-    bool drawBullet;
     bool bulletHit;
     glm::vec3 enemyPosition;
     bool enemyGoLeft;
     float enemySize;
-
-
     Cube *enemyCube;
+
+
     glm::vec3 crosshairPosition;
     Cube *crosshairCube;
     float crosshairSize;
+
+
     //Enemy *enemy;
+
+    
     std::vector<Projectile*> projectiles; // Store multiple projectiles
 
 

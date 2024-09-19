@@ -3,16 +3,17 @@
 Game::Game()
 {
     player = new Player(glm::vec3(0.0f, 0.0f, 3.0f));
-    // std::cout << "constructor\n";
     init();
     windowHeight = 600;
     windowWidth = 800;
-    drawBullet = false;
     enemyGoLeft = true;
+
+
     enemySize = 1.f;
-    drawBullet = true;
     enemyPosition = {0.f, 1.f, 3.f};
     enemyCube = new Cube(enemyPosition, enemySize);
+
+
     crosshairPosition = player->camera->getPosition() + 0.1f * player->camera->getFront();
     crosshairCube = new Cube(crosshairPosition, 0.001f);
     crosshairSize = 0.001f;
@@ -33,9 +34,7 @@ void Game::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    windowHeight = 600;
 
-    // window = glfwCreateWindow(windowWidth, windowHeight, "3D FPS Game", nullptr, nullptr);
     window = glfwCreateWindow(800, 600, "3D FPS Game", nullptr, nullptr);
     if (window == nullptr)
     {
@@ -142,10 +141,9 @@ void Game::processInput(float deltaTime)
 
         glm::vec3 startPosition = player->getCamera()->getPosition();
         glm::vec3 direction = player->getCamera()->getFront();
-        float speed = 0.75f;
 
         // Create the projectile and add it to the vector
-        Projectile *newProjectile = new Projectile(startPosition, direction, speed);
+        Projectile *newProjectile = new Projectile(startPosition, direction, deltaTime);
         projectiles.push_back(newProjectile);
 
         if (physics->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(enemyCube->getCubeVector())) == true)
@@ -230,7 +228,7 @@ void Game::render()
     renderer->DrawCubeBasic(*shader, *player->camera, crosshairCube->getCubeVector(), White);
 
 
-    //renderer->DrawPlane(*shader, *enemy->getEnemyCube()->getCubeVector());
+    //renderer->UpdateCube(*shader, *enemy->getEnemyCube()->getCubeVector());
     glfwSwapBuffers(window);
 }
 
@@ -282,7 +280,6 @@ void Game::run()
 
         update(deltaTime);
         render();
-
 
         glfwPollEvents();
     }

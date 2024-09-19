@@ -2,7 +2,6 @@
 
 //find new position
 void Projectile::Update(float deltaTime){
-    //glm::vec3 newPosition = projectileCube->getCubePosition() + deltaTime * velocity;
     glm::vec3 newPosition = projectileCube->getCubePosition() + velocity;
     projectileCube->UpdateCube(cubeSize, newPosition);
     age += deltaTime;
@@ -11,13 +10,6 @@ void Projectile::Update(float deltaTime){
 void Projectile::SetVelocity(glm::vec3 direction, float speed){
     velocity = speed * direction;
 }
-// Other common projectile methods
-
-/*
-void OnCollision();   //Defines what happens when the projectile hits an object (e.g., apply damage, trigger explosion).
-void Spawn();     //Initializes the projectile’s position, velocity, and other properties when it is fired.
-void Destroy();   //Handles cleanup when the projectile’s lifespan ends or it collides with something.
-*/
 
 
 bool Projectile::isExpired(){
