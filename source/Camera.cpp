@@ -75,17 +75,17 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
     Velocity.z -= Velocity.z * movement_friction * deltaTime;
     Position += Velocity * deltaTime;
 
-    Position.x = std::min(10.f, Position.x);
-    Position.y = std::min(10.f, Position.y);
-    Position.z = std::min(10.f, Position.z);
-    Position.x = std::max(-10.f, Position.x);
-    Position.y = std::max(-10.f, Position.y);
-    Position.z = std::max(-10.f, Position.z);
+    Position.x = std::min(20.f, Position.x);
+    Position.y = std::min(20.f, Position.y);
+    Position.z = std::min(20.f, Position.z);
+    Position.x = std::max(0.f, Position.x);
+    Position.y = std::max(0.f, Position.y);
+    Position.z = std::max(0.f, Position.z);
 
 
     // Print the current position of the camera (for debugging purposes)
-    std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
-    std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
+    //std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
+    //std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
     previousPosition = Position;
 }
 
@@ -219,7 +219,7 @@ void Camera::wallRunLeft(float deltaTime)
 
 
     // Print the current position of the camera (for debugging purposes)
-    std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
-    std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
+    //std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
+    //std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
     previousPosition = Position;
 }

@@ -8,10 +8,14 @@
 #include "Renderer.h"
 #include "Projectile.h"
 #include "Physics_Engine.h"
+#include "AStar.h"
+#include "Enemy.h"
 
-#include<functional>
+#include <functional>
+#include <random>
 
-class Game {
+class Game
+{
 public:
     Game();
     void run();
@@ -19,13 +23,15 @@ public:
 private:
     void init();
     void processInput(float deltaTime);
+    void updateEnemies(float deltaTime);
     void update(float deltaTime);
     void render();
     void calculateMouse();
     float windowHeight, windowWidth;
+    std::vector<std::vector<int>> vecmap;
 
-    GLFWwindow* window;
-    Shader *shader;  // Declaration only
+    GLFWwindow *window;
+    Shader *shader; // Declaration only
     Player *player;
     Renderer *renderer;
     Physics_Engine *physics;
@@ -36,23 +42,16 @@ private:
     float enemySize;
     Cube *enemyCube;
 
-
     glm::vec3 crosshairPosition;
     Cube *crosshairCube;
     float crosshairSize;
 
+    Enemy *enemy;
+    float mapWidth;
+    float mapHeight;
+    void prepAStar();
 
-    //Enemy *enemy;
-
-    
-    std::vector<Projectile*> projectiles; // Store multiple projectiles
-
-
-   
-    template<typename Func, typename T1, typename T2, typename ...Args>
-    bool DoThingForTimeSec(Func func, float seconds, float startTime, Args... args);
-
-
+    std::vector<Projectile *> projectiles; // Store multiple projectiles
     glm::vec2 findCoordinate(std::vector<std::vector<int>> vecmap, glm::vec3 playerPosition, float planeHeight, float planeWidth, float cubeDimensions);
 };
 

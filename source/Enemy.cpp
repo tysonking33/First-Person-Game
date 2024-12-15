@@ -1,89 +1,46 @@
 #include "../includes/Enemy.h"
+#include <glm/gtc/type_ptr.hpp> // For glm::normalize
 
-Enemy::Enemy(glm::vec3 startPosition) {
-    // Initialize the enemy's cube with the start position and size
-    enemyCube = new Cube(startPosition, 0.5f); // Assuming size 0.5f for the cube
-    currentPosition = startPosition;
-
-
-    // Initialize the current route (this should be a vector of glm::vec3)
-    CurrentRoute = {
-        glm::vec3(30, 37.5f, 0),
-        glm::vec3(90, 112.5f, 0),
-        glm::vec3(150, 187.5f, 0),
-        glm::vec3(210, 112.5f, 0),
-        glm::vec3(270, 37.5f, 0),
-        glm::vec3(330, 37.5f, 0),
-        glm::vec3(390, 37.5f, 0),
-        glm::vec3(450, 37.5f, 0)
-    };
-
-    // Set initial nodes if necessary, ensuring they are within bounds
-    if (!CurrentRoute.empty()) {
-        lastNodeTouched = CurrentRoute[0]; // Start with the first node as the last touched
-        if (CurrentRoute.size() > 1) {
-            nextNode = CurrentRoute[1]; // Set the next node if available
-        }
-    }
-
-    // Initialize the path index to start moving from the first node
-    pathIndex = 0;
-    hitStatus = false;
-}
-
-void Enemy::Move(float deltaTime)
+Enemy::Enemy(glm::vec3 startPosition, glm::vec3 defaultColor)
 {
-    //find normalised direction vector
-    glm::vec3 direction = nextNode - currentPosition;
-    direction = glm::normalize(direction);
-
-    //check proximity to node, if so, update
-    float distanceSquared = glm::length2(direction); // using euclidean distance
-
-    float offset = 0.1f;
-    if (distanceSquared <= offset * offset)
-    {
-        //go to next distance
-        pathIndex++;
-        if (pathIndex < (int)CurrentRoute.size())
-        {
-            lastNodeTouched = CurrentRoute[pathIndex];
-            nextNode = CurrentRoute[pathIndex];
-        }
-    }
-
-    float speed = 0.2f;
-
-    //update position
-    currentPosition = currentPosition + direction * speed * deltaTime;
-
-    enemyCube->UpdateCube(enemyCube->getCubeSize(), currentPosition);
+    enemyCube = new Cube(startPosition, 0.5f, defaultColor, Red); // Cube size 0.5f
+    currentPosition = startPosition;
 }
-
 
 glm::vec3 Enemy::getPosition()
 {
     return currentPosition;
 }
 
-void Enemy::setRoute(std::vector<glm::vec3> newRoute, float deltaTime)
-{
-    CurrentRoute = newRoute;
-     // Set initial nodes if necessary, ensuring they are within bounds
-    if (!CurrentRoute.empty()) {
-        lastNodeTouched = CurrentRoute[0]; // Start with the first node as the last touched
-        if (CurrentRoute.size() > 1) {
-            nextNode = CurrentRoute[1]; // Set the next node if available
-        }
-    }
-
-    // Initialize the path index to start moving from the first node
-    pathIndex = 0;
-    hitStatus = false;
-    Move(deltaTime);
-}
 
 Cube *Enemy::getEnemyCube()
 {
     return enemyCube;
+}
+
+void Enemy::Move(int newGridWidth, int newGridHeight, glm::vec3 playerPos, float deltaTime) {
+
+    std::vector<float> next_move_pixel = runAStar(newGridWidth, newGridHeight, playerPos.x, playerPos.z, currentPosition.x, currentPosition.z);
+    if (next_move_pixel.empty()) {
+        if (next_move_pixel.empty()) {
+            std::cout << "next_move_pixel is empty. Stopping movement.\n";
+        }
+        return;
+    }
+
+    // Proceed with movement logic
+    glm::vec3 targetNode{next_move_pixel[0], next_move_pixel[1], next_move_pixel[2]};
+    glm::vec3 direction = glm::normalize(glm::vec3(targetNode.x, targetNode.y, targetNode.z) - currentPosition);
+    float speed = 5.0f;
+    currentPosition += direction * speed * deltaTime;
+
+    std::min(15.f, currentPosition.x);
+    std::min(15.f, currentPosition.y);
+    std::min(15.f, currentPosition.z);
+    std::max(5.f, currentPosition.x);
+    std::max(5.f, currentPosition.y);
+    std::max(5.f, currentPosition.z);
+
+    // Update the enemy's position
+    enemyCube->UpdateCube(enemyCube->getCubeSize(), currentPosition);
 }

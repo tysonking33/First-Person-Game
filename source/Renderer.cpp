@@ -7,15 +7,19 @@ void Renderer::setPlaneColor(const glm::vec3 &color)
 
 void Renderer::DrawPlane(Shader &shader, Camera &camera)
 {
-
+    // Updated vertices for a 20x20 plane, only in positive coordinates
     float vertices[] = {
         // positions          // normals           // texture coords
-        -10.0f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  // top left
-        10.0f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // top right corner
-        10.0f, 0.0f, 10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,    // bottom right corner
-        10.0f, 0.0f, 10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,    // bottom right corner
-        -10.0f, 0.0f, 10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,   // bottom-left corner
-        -10.0f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f}; // top left corner
+        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,    // bottom-left corner (0, 0)
+        20.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // bottom-right corner (20, 0)
+        20.0f, 0.0f, 20.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   // top-right corner (20, 20)
+        
+        20.0f, 0.0f, 20.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   // top-right corner (20, 20)
+        0.0f, 0.0f, 20.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,    // top-left corner (0, 20)
+        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f     // bottom-left corner (0, 0)
+    };
+
+    // Set up the VAO and VBO
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -25,15 +29,19 @@ void Renderer::DrawPlane(Shader &shader, Camera &camera)
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
+    // Normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // Texture coordinates attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
+    // Set plane color
     planeColor = Blue;
 
     shader.use();
@@ -45,9 +53,11 @@ void Renderer::DrawPlane(Shader &shader, Camera &camera)
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
 
+    // Draw the plane
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
+    // Clean up
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -107,15 +117,19 @@ std::vector<Vertex> Renderer::convertPlainArrayToCubeFormat(std::vector<float> o
 
 void Renderer::DrawWall(Shader &shader, Camera &camera)
 {
-
+    // Updated vertices for a wall that spans in positive coordinates and has a height of 20
     float vertices[] = {
         // positions          // normals           // texture coords
-        -10.0f, -10.0f, 10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  // top left
-        10.0f, -10.0f, 10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // top right corner
-        10.0f, 10.0f, 10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,    // bottom right corner
-        10.0f, 10.0f, 10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,    // bottom right corner
-        -10.0f, 10.0f, 10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,   // bottom-left corner
-        -10.0f, -10.0f, 10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f}; // top left corner
+        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,     // bottom-left corner (0, 0)
+        20.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,    // bottom-right corner (20, 0)
+        20.0f, 20.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,    // top-right corner (20, 20)
+        
+        20.0f, 20.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,    // top-right corner (20, 20)
+        0.0f, 20.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,     // top-left corner (0, 20)
+        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f      // bottom-left corner (0, 0)
+    };
+
+    // Set up the VAO and VBO
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -125,19 +139,23 @@ void Renderer::DrawWall(Shader &shader, Camera &camera)
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
+    // Normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // Texture coordinates attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
+    // Set wall color
     planeColor = Gray;
 
     shader.use();
-    shader.setVec3("planeColor", planeColor); // Set the plane color
+    shader.setVec3("planeColor", planeColor); // Set the wall color
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);
@@ -145,13 +163,16 @@ void Renderer::DrawWall(Shader &shader, Camera &camera)
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
 
+    // Draw the wall
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
+    // Clean up
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 }
+
 
 bool Renderer::detectWallLeft(Camera *camera)
 {

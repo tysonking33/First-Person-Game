@@ -40,6 +40,8 @@ set(CMAKE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../includes)
 
 set(SOURCES 
+    ${SOURCE_DIR}/AStar.cpp
+    ${SOURCE_DIR}/Enemy.cpp
     ${SOURCE_DIR}/Camera.cpp
     ${SOURCE_DIR}/Game.cpp
     ${SOURCE_DIR}/Player.cpp
@@ -53,6 +55,9 @@ set(SOURCES
 
 # Add all header files
 set(headers
+    ${INCLUDE_DIR}/AStar.h
+    ${SOURCE_DIR}/Enemy.cpp
+
     ${INCLUDE_DIR}/Camera.h
     ${INCLUDE_DIR}/Game.h
     ${INCLUDE_DIR}/Player.h

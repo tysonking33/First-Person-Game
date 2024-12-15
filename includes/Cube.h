@@ -8,7 +8,6 @@
 #include <array>
 #include <vector>
 
-
 class Cube
 {
 public:
@@ -20,7 +19,6 @@ public:
     Cube(glm::vec3 newCubePosition, float newCubeSize);
     Cube(glm::vec3 newCubePosition, float newCubeSize, glm::vec3 newDefaultColor, glm::vec3 newHitColor);
 
-    
     void setCubePosition(glm::vec3 position);
     void setCubeColor(glm::vec3 newColor);
 
@@ -30,7 +28,6 @@ public:
     glm::vec3 getCubePosition();
     void ChangeHitStatus(bool hit);
     glm::vec3 GetCubeColor();
-
 
 private:
     std::vector<float> cubeVector;
