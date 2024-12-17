@@ -76,7 +76,7 @@ void Game::render()
     crosshairPosition = player->camera->getPosition() + 0.1f * player->camera->getFront();
     crosshairCube->UpdateCube(crosshairSize, crosshairPosition);
     renderer->DrawCubeBasic(*shader, *player->camera, crosshairCube->getCubeVector(), White);
-    renderer->DrawCubeBasic(*shader, *player->camera, enemy->getEnemyCube()->getCubeVector(), Brown);
+    renderer->DrawCubeBasic(*shader, *player->camera, enemy->getEnemyCube()->getCubeVector(), enemy->getEnemyCube()->GetCubeColor());
 
     glfwSwapBuffers(window);
 }
@@ -166,7 +166,7 @@ void Game::processInput(float deltaTime)
         Projectile *newProjectile = new Projectile(startPosition, direction, deltaTime);
         projectiles.push_back(newProjectile);
 
-        /*
+        
         if (physics->RayCast((player->getCamera()), renderer->convertPlainArrayToCubeFormat(enemy->getEnemyCube()->getCubeVector())) == true)
         {
             bulletHit = true;
@@ -177,7 +177,7 @@ void Game::processInput(float deltaTime)
             bulletHit = false;
             enemy->getEnemyCube()->ChangeHitStatus(bulletHit);
         }
-        */
+        
     }
 }
 
@@ -187,11 +187,9 @@ void Game::update(float deltaTime)
     player->camera->RunGravity();
 
     glm::vec3 playerPos = player->playerCube->getCubePosition();
-    playerPos.z -= playerPos.z;
 
-    glm::vec3 p2{3,3,3}; 
 
-    enemy->Move(mapWidth, mapHeight, p2, deltaTime);
+    enemy->Move(mapWidth, mapHeight, playerPos, deltaTime);
 
     for (auto it = projectiles.begin(); it != projectiles.end();)
     {

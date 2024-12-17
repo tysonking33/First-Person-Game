@@ -241,7 +241,7 @@ std::vector<float> runAStar(float newGridWidth, float newGridHeight, float playe
 {
 
     // Map dimensions
-    int cellWidth = 5, cellHeight = 5;                                                             // Each cell is 5x5 pixels
+    int cellWidth = 1, cellHeight = 1;                                                             // Each cell is 5x5 pixels
     int gridWidth = ceil(newGridWidth+1 / cellWidth), gridHeight = ceil(newGridHeight+1 / cellHeight); // 10x10 grid
 
     // Create the game map dynamically (with random obstacles)
