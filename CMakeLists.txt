@@ -60,6 +60,7 @@ set(headers
 
     ${INCLUDE_DIR}/Camera.h
     ${INCLUDE_DIR}/Game.h
+    ${INCLUDE_DIR}/Obstacle.h
     ${INCLUDE_DIR}/Player.h
     ${INCLUDE_DIR}/Renderer.h
     ${INCLUDE_DIR}/Shader.h

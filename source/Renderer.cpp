@@ -232,3 +232,102 @@ void Renderer::DrawStreak(Shader &shader, Camera &camera)
 
     glBindVertexArray(0);
 }
+
+
+void Renderer::DrawCuboid(Shader &shader, Camera &camera, glm::vec3 position, float orientation, glm::vec3 dimensions)
+{
+    // Define the cuboid vertices
+    float vertices[] = {
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.0f, 0.0f,  // front-bottom-left
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 0.0f,  // front-bottom-right
+         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f,  // front-top-right
+
+         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f,  // front-top-right
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.0f, 1.0f,  // front-top-left
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.0f, 0.0f,  // front-bottom-left
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.0f, 0.0f,  // back-bottom-left
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  1.0f, 0.0f,  // back-bottom-right
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  1.0f, 1.0f,  // back-top-right
+
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  1.0f, 1.0f,  // back-top-right
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.0f, 1.0f,  // back-top-left
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.0f, 0.0f,  // back-bottom-left
+
+        -0.5f,  0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,  // left-top-front
+        -0.5f,  0.5f,  0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,  // left-top-back
+        -0.5f, -0.5f,  0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,  // left-bottom-back
+
+        -0.5f, -0.5f,  0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,  // left-bottom-back
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,  // left-bottom-front
+        -0.5f,  0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,  // left-top-front
+
+         0.5f,  0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, 1.0f,  // right-top-front
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.0f, 0.0f,  // right-top-back
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  1.0f, 0.0f,  // right-bottom-back
+
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  1.0f, 0.0f,  // right-bottom-back
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, 0.0f,  // right-bottom-front
+         0.5f,  0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, 1.0f   // right-top-front
+    };
+
+    // Scale the cuboid to the given width, height, and depth
+    for (int i = 0; i < sizeof(vertices) / sizeof(vertices[0]); i += 8)
+    {
+        vertices[i] *= dimensions.x;  // Scale x
+        vertices[i + 1] *= dimensions.y;  // Scale y
+        vertices[i + 2] *= dimensions.z;  // Scale z
+    }
+
+    // Set up the VAO and VBO
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // Texture coordinates attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // Set cuboid color (can customize or pass as parameter)
+    glm::vec3 cuboidColor = glm::vec3(1.0f, 0.0f, 0.0f); // Red
+
+    shader.use();
+    shader.setVec3("planeColor", cuboidColor);
+
+    // Create the model matrix for translation and rotation
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);  // Translate to position
+    model = glm::rotate(model, glm::radians(orientation), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around the Y-axis
+
+    // Set up view and projection matrices
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);
+
+    // Set shader uniforms
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+
+    // Draw the cuboid
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36); // 36 vertices for 12 triangles in a cuboid
+
+    // Clean up
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}

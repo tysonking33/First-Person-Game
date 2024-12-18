@@ -216,3 +216,6 @@ bool Physics_Engine::cubeCollision(Cube *cubeA, Cube *cubeB)
     bool Zcollide = minZA <= maxZB && maxZA >= minZB;
     return (Xcollide && Ycollide && Zcollide);
 }
+
+
+// to do, onbstacle collision

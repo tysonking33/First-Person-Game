@@ -36,6 +36,7 @@ public:
     void DrawWall(Shader &shader, Camera &camera);
     bool detectWallLeft(Camera *camera);
     void DrawStreak(Shader &shader, Camera &camera);
+    void DrawCuboid(Shader &shader, Camera &camera, glm::vec3 position, float orientation, glm::vec3 dimensions);
 
 private:
     glm::vec3 planeColor; // Color variable

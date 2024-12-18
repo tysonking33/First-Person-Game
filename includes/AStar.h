@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <algorithm>
+#include "Obstacle.h"
+
 
 using namespace std;
 
@@ -58,6 +60,10 @@ Point getPixelCoordinates(const Point &gridPoint, int cellWidth, int cellHeight)
 std::vector<Point> getFirstStep(const vector<Point> &path, int cellWidth, int cellHeight);
 
 // Function to run A* and return the first step in pixel coordinates
-std::vector<float> runAStar(float newGridWidth, float newGridHeight, float playerX, float playerY, float enemyX, int enemyY);
+std::vector<float> runAStar(float playfieldWidth, float playfieldHeight, float playerX, float playerY, float enemyX, int enemyY, std::vector<Obstacle *> obstacleVector);
+
+// Function to convert obstacle to grid points on map
+std::vector<Point> getObstaclePoints(int cellWidth, int cellHeight, std::vector<Obstacle *> obstacleVector);
+
 
 #endif // ASTAR_H

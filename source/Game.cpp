@@ -5,7 +5,7 @@ Game::Game()
     // generate 2d array for the map 1.f by 1.f, with player positoon and enemy position
     // inside vector
     vecmap = std::vector(20, std::vector<int>(20, 0));
-    player = new Player(glm::vec3(3.0f, 3.0f, 3.0f));
+    player = new Player(glm::vec3(2.0f, 3.0f, 2.0f));
     init();
     windowHeight = 600;
     windowWidth = 800;
@@ -20,6 +20,7 @@ Game::Game()
     float FLOAT_MIN = -10;
     enemy = new Enemy(glm::vec3{20.f, 3.f, 20.f}, Brown);
     physics = new Physics_Engine();
+    initaliseObstacles();
 }
 
 void Game::init()
@@ -77,6 +78,11 @@ void Game::render()
     crosshairCube->UpdateCube(crosshairSize, crosshairPosition);
     renderer->DrawCubeBasic(*shader, *player->camera, crosshairCube->getCubeVector(), White);
     renderer->DrawCubeBasic(*shader, *player->camera, enemy->getEnemyCube()->getCubeVector(), enemy->getEnemyCube()->GetCubeColor());
+
+    for (auto obstacle: obstacleVector)
+    {
+        renderer->DrawCuboid(*shader, *player->camera, obstacle->position, obstacle->orientation, obstacle->dimensions);
+    }
 
     glfwSwapBuffers(window);
 }
@@ -189,7 +195,7 @@ void Game::update(float deltaTime)
     glm::vec3 playerPos = player->playerCube->getCubePosition();
 
 
-    enemy->Move(mapWidth, mapHeight, playerPos, deltaTime);
+    enemy->Move(mapWidth, mapHeight, playerPos, deltaTime, obstacleVector);
 
     for (auto it = projectiles.begin(); it != projectiles.end();)
     {
@@ -212,6 +218,12 @@ void Game::update(float deltaTime)
     }
 }
 
+void Game::initaliseObstacles()
+{
+    Obstacle *obstacle1 = new Obstacle(glm::vec3{5, 0, 5}, 0, glm::vec3{1, 5, 1});
+    obstacleVector.push_back(obstacle1);
+}
+
 void Game::run()
 {
     float deltaTime = 0.0f;
@@ -231,3 +243,11 @@ void Game::run()
 
     glfwTerminate();
 }
+
+
+/* to do
+obstacles
+weapon reloading, with ammuntion
+ai agents- mood - utility based agents
+
+*/

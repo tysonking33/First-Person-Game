@@ -10,6 +10,7 @@
 #include "Physics_Engine.h"
 #include "AStar.h"
 #include "Enemy.h"
+#include "Obstacle.h"
 
 #include <functional>
 #include <random>
@@ -53,6 +54,10 @@ private:
 
     std::vector<Projectile *> projectiles; // Store multiple projectiles
     glm::vec2 findCoordinate(std::vector<std::vector<int>> vecmap, glm::vec3 playerPosition, float planeHeight, float planeWidth, float cubeDimensions);
+
+    void initaliseObstacles();
+    std::vector<Obstacle *> obstacleVector;
+
 };
 
 #endif

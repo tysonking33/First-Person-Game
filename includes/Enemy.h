@@ -2,6 +2,7 @@
 #include <vector>
 #include "Cube.h"
 #include "AStar.h"
+#include "Obstacle.h"
 
 class Enemy {
 private:
@@ -13,6 +14,6 @@ public:
     Enemy(glm::vec3 startPosition, glm::vec3 defaultColor);
     glm::vec3 getPosition();
     Cube *getEnemyCube();
-    void Move(int newGridWidth, int newGridHeight, glm::vec3 playerPos, float deltaTime);
+    void Move(int newGridWidth, int newGridHeight, glm::vec3 playerPos, float deltaTime, std::vector<Obstacle *> obstacleVector);
 
 };

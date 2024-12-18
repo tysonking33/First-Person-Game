@@ -24,7 +24,7 @@ namespace std
 // Convert pixel coordinates to grid coordinates
 Point getGridCoordinates(int x, int y, int cellWidth, int cellHeight)
 {
-    return Point(x / cellWidth, y / cellHeight);
+    return Point(ceil(x / cellWidth), ceil(y / cellHeight));
 }
 
 // Heuristic function: Manhattan distance (for diagonal movement, we use Chebyshev distance)
@@ -237,12 +237,53 @@ std::vector<Point> getFirstStep(const vector<Point> &path, int cellWidth, int ce
     return result;
 }
 
-std::vector<float> runAStar(float newGridWidth, float newGridHeight, float playerX, float playerY, float enemyX, int enemyY)
+std::vector<Point> getObstaclePoints(int cellWidth, int cellHeight, std::vector<Obstacle *> obstacleVector)
 {
+    std::vector<Point> gridCells; // resulting obstacle grid cells
+    for (auto obstacle : obstacleVector)
+    {
+        // Get the 8 points of the cuboid
+        std::vector<glm::vec3> cuboidPoints = obstacle->getCuboidPoints();
 
+        // Variables to track the min/max grid coordinates
+        int minX = INT_MAX, minY = INT_MAX, maxX = INT_MIN, maxY = INT_MIN;
+
+        // Convert each cuboid point to grid coordinates and find the bounding box
+        for (const glm::vec3 &point : cuboidPoints)
+        {
+            // For simplicity, we'll use the X and Z coordinates as the 2D grid coordinates
+            // (ignoring Y in this example)
+            Point gridPoint = getGridCoordinates(static_cast<int>(point.x), static_cast<int>(point.z), cellWidth, cellHeight);
+
+            // Update the bounding box
+            minX = std::min(minX, gridPoint.x);
+            maxX = std::max(maxX, gridPoint.x);
+            minY = std::min(minY, gridPoint.y);
+            maxY = std::max(maxY, gridPoint.y);
+        }
+
+        // Now, generate all the grid cells within the bounding box
+        for (int x = minX; x <= maxX; ++x)
+        {
+            for (int y = minY; y <= maxY; ++y)
+            {
+                gridCells.push_back(Point(x, y));
+            }
+        }
+    }
+
+    return gridCells;
+}
+
+std::vector<float> runAStar(float playfieldWidth, float playfieldHeight, float playerX, float playerY, float enemyX, int enemyY, std::vector<Obstacle *> obstacleVector)
+{
+    std::cout << "playerX: " << playerX << ", playerY: " << playerY << std::endl;
+    std::cout << "enemyX: " << enemyX << ", enemyY: " << enemyY << std::endl;
     // Map dimensions
-    int cellWidth = 1, cellHeight = 1;                                                             // Each cell is 5x5 pixels
-    int gridWidth = ceil(newGridWidth+1 / cellWidth), gridHeight = ceil(newGridHeight+1 / cellHeight); // 10x10 grid
+    int cellWidth = 1, cellHeight = 1;                                                                     // Each cell is cellWidth by cellHeight pixels
+    int gridWidth = ceil(playfieldWidth / cellWidth)+1, gridHeight = ceil(playfieldHeight/ cellHeight)+1; // 10x10 grid
+
+    std::cout << "1. gridWidth: " << gridWidth << ", gridHeight: " << gridHeight << std::endl;
 
     // Create the game map dynamically (with random obstacles)
     vector<vector<int>> gameMap = createGameMap(gridWidth, gridWidth, 0); // 30% obstacles
@@ -256,6 +297,16 @@ std::vector<float> runAStar(float newGridWidth, float newGridHeight, float playe
 
     Point goal = getGridCoordinates(playerPosition.x, playerPosition.y, cellWidth, cellHeight);
 
+    /*-------------------------------------start adding obstacles--------------------------------------------------*/
+    std::vector<Point> gridCells =  getObstaclePoints(cellWidth, cellHeight, obstacleVector);// resulting obstacle grid cells
+
+    for (auto obstacleGridCell: gridCells)
+    {
+        gameMap[obstacleGridCell.x][obstacleGridCell.y] = 1;
+    }
+
+    /*-------------------------------------finished adding obstacles-----------------------------------------------*/
+
     // Find the path from enemy to player
     vector<Point> path = astar(start, goal, gameMap, cellWidth, cellHeight);
 
@@ -264,11 +315,17 @@ std::vector<float> runAStar(float newGridWidth, float newGridHeight, float playe
     {
         cout << "No path found!" << endl;
         // return 1;
+        // Output the generated game map
+        cout << "Generated Game Map:\n";
+        printGameMap(gameMap, start, goal, path);
+        std::vector<float> nextPix;
+        return nextPix;
     }
 
-    // Output the generated game map
-    // cout << "Generated Game Map:\n";
-    // printGameMap(gameMap, start, goal, path);
+    std::cout << "playfieldWidth: " << playfieldWidth << ", playfieldHeight: " << playfieldHeight << std::endl;
+    std::cout << "cellWidth: " << cellWidth << ", cellHeight: " << cellHeight << std::endl;
+    std::cout << "gridWidth: " << gridWidth << ", gridHeight: " << gridHeight << std::endl;
+
 
     std::vector<Point> result = getFirstStep(path, cellWidth, cellHeight);
 
