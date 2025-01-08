@@ -5,7 +5,7 @@ Game::Game()
     // generate 2d array for the map 1.f by 1.f, with player positoon and enemy position
     // inside vector
     vecmap = std::vector(20, std::vector<int>(20, 0));
-    player = new Player(glm::vec3(2.0f, 3.0f, 2.0f));
+    player = new Player(glm::vec3(10.0f, 3.0f, 0.0f));
     init();
     windowHeight = 600;
     windowWidth = 800;
@@ -18,9 +18,9 @@ Game::Game()
     crosshairSize = 0.001f;
     float FLOAT_MAX = 10;
     float FLOAT_MIN = -10;
-    enemy = new Enemy(glm::vec3{20.f, 3.f, 20.f}, Brown);
     physics = new Physics_Engine();
     initaliseObstacles();
+    enemy = new Enemy(glm::vec3{20.f, 3.f, 20.f}, Brown, mapWidth, mapHeight, player->camera->getPosition(), 0, obstacleVector);
 }
 
 void Game::init()
@@ -84,8 +84,24 @@ void Game::render()
         renderer->DrawCuboid(*shader, *player->camera, obstacle->position, obstacle->orientation, obstacle->dimensions);
     }
 
+    // Disable depth testing before rendering the minimap
+    glDisable(GL_DEPTH_TEST);
+
+    // Set the viewport for the minimap (top-left corner)
+    glViewport(0, windowHeight - 200, 200, 200);  // Minimap size 200x200 in the top-left corner
+
+    // Call renderMinimap here
+    renderer->renderMinimap(*shader, *player->camera, player->getCamera()->getPosition(), enemy->getEnemyCube()->getCubePosition(), obstacleVector, mapWidth, mapHeight);
+
+    // Reset the viewport to the entire window
+    glViewport(0, 0, windowWidth, windowHeight);
+
+    // Re-enable depth testing for the 3D scene
+    glEnable(GL_DEPTH_TEST);
+
     glfwSwapBuffers(window);
 }
+
 
 // calculate mouse position
 // current_angle = angle between mouse and center of screen
@@ -123,16 +139,21 @@ void Game::processInput(float deltaTime)
     if ((glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS))
         exit(1);
     /*------------------------------camera position movement-----------------------------*/
-    if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS))
-        player->processKeyboardInput(FORWARD, deltaTime);
-    if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS))
-        player->processKeyboardInput(BACKWARD, deltaTime);
-    if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS))
-        player->processKeyboardInput(LEFT, deltaTime);
-    if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
-        player->processKeyboardInput(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        player->processKeyboardInput(JUMP, deltaTime);
+    if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) ||(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
+    {
+        if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS))
+            player->processKeyboardInput(FORWARD, deltaTime);
+        if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS))
+            player->processKeyboardInput(BACKWARD, deltaTime);
+        if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS))
+            player->processKeyboardInput(LEFT, deltaTime);
+        if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
+            player->processKeyboardInput(RIGHT, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+            player->processKeyboardInput(JUMP, deltaTime);
+
+        enemy->generate_new_enemy_AStar_path(mapWidth, mapHeight, player->getCamera()->getPosition(), deltaTime, obstacleVector);
+    }
 
     if ((glfwGetKey(window, GLFW_KEY_W) != GLFW_PRESS) &&
         (glfwGetKey(window, GLFW_KEY_S) != GLFW_PRESS) &&
@@ -228,6 +249,7 @@ void Game::run()
 {
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
+    enemy->generate_new_enemy_AStar_path(mapWidth, mapHeight, player->getCamera()->getPosition(), deltaTime, obstacleVector);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -243,6 +265,7 @@ void Game::run()
 
     glfwTerminate();
 }
+
 
 
 /* to do

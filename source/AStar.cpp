@@ -2,244 +2,257 @@
 #include <vector>
 #include <queue>
 #include <cmath>
-#include <unordered_map>
-#include <set>
-#include <cstdlib>
-#include <ctime>
+#include <unordered_set>
+#include <functional>
 #include <algorithm>
 #include "../includes/AStar.h"
+#include <random>
 
-namespace std
+
+using namespace std;
+
+// Node constructor definition
+Node::Node(int x, int y, int g, int h, Node *parent)
+    : x(x), y(y), g(g), h(h), parent(parent) {}
+
+// Node::f() returns the total cost f = g + h
+int Node::f() const
 {
-    template <>
-    struct hash<Point>
-    {
-        size_t operator()(const Point &p) const
-        {
-            return hash<int>()(p.x) ^ (hash<int>()(p.y) << 1); // Combine the hashes of x and y
-        }
-    };
+    return g + h;
 }
 
-// Convert pixel coordinates to grid coordinates
-Point getGridCoordinates(int x, int y, int cellWidth, int cellHeight)
+// Overload the 'greater than' operator to compare nodes in a priority queue
+bool Node::operator>(const Node &other) const
 {
-    return Point(ceil(x / cellWidth), ceil(y / cellHeight));
+    return f() > other.f();
 }
 
-// Heuristic function: Manhattan distance (for diagonal movement, we use Chebyshev distance)
-int heuristic(const Point &a, const Point &b)
+// Directions for movement: 8 directions (up, down, left, right, and 4 diagonals)
+const vector<pair<int, int>> directions = {
+    {0, 1}, {1, 0}, {0, -1}, {-1, 0}, // Right, Down, Left, Up
+    {1, 1},
+    {1, -1},
+    {-1, 1},
+    {-1, -1} // Down-right, Down-left, Up-right, Up-left (diagonals)
+};
+
+// Check if a position is within bounds and not an obstacle
+bool AStar::isValid(int x, int y, int rows, int cols, const vector<vector<int>> &grid)
 {
-    return max(abs(a.x - b.x), abs(a.y - b.y)); // Chebyshev distance for diagonal movement
+    return x >= 0 && y >= 0 && x < rows && y < cols && grid[x][y] != 1;
 }
 
-// A* Algorithm for pathfinding
-vector<Point> astar(const Point &start, const Point &goal, const vector<vector<int>> &grid, int cellWidth, int cellHeight)
+// Heuristic function: Chebyshev distance (max of horizontal and vertical distance)
+int AStar::heuristic(int x1, int y1, int x2, int y2)
 {
-    // Define the directions: left, right, up, down, and diagonal movements
-    vector<Point> directions = {
-        Point(-1, 0),  // left
-        Point(1, 0),   // right
-        Point(0, -1),  // up
-        Point(0, 1),   // down
-        Point(-1, -1), // top-left diagonal
-        Point(1, -1),  // top-right diagonal
-        Point(-1, 1),  // bottom-left diagonal
-        Point(1, 1)    // bottom-right diagonal
-    };
+    return max(abs(x1 - x2), abs(y1 - y2)); // Chebyshev distance for 8-direction movement
+}
 
-    // Open list (priority queue), stores (f_cost, point)
-    priority_queue<pair<int, Point>, vector<pair<int, Point>>, greater<pair<int, Point>>> openList;
-    openList.push({heuristic(start, goal), start});
 
-    // Maps to track costs
-    unordered_map<Point, int> gCost;
-    unordered_map<Point, int> fCost;
-    unordered_map<Point, Point> cameFrom;
 
-    gCost[start] = 0;
-    fCost[start] = heuristic(start, goal);
+// A* algorithm to find the shortest path
+vector<Node *> AStar::aStar(const vector<vector<int>> &grid, Node *start, Node *goal)
+{
+    int rows = grid.size();
+    int cols = grid[0].size();
 
-    // Closed list to avoid revisiting
-    set<Point> closedList;
+    // Priority queue to hold nodes with the smallest f values (min-heap)
+    priority_queue<Node *, vector<Node *>, greater<Node *>> openList;
+    unordered_set<string> closedList;
+
+    openList.push(start);
 
     while (!openList.empty())
     {
-        // Get the node with the lowest f_cost
-        Point current = openList.top().second;
+        Node *current = openList.top();
         openList.pop();
 
-        // If we reached the goal, reconstruct the path
-        if (current == goal)
+        // If we reach the goal, reconstruct the path
+        if (current->x == goal->x && current->y == goal->y)
         {
-            vector<Point> path;
-            while (cameFrom.find(current) != cameFrom.end())
+            vector<Node *> path;
+            while (current != nullptr)
             {
                 path.push_back(current);
-                current = cameFrom[current];
+                current = current->parent;
             }
-            path.push_back(start);
-            reverse(path.begin(), path.end());
+            reverse(path.begin(), path.end()); // Reverse the path to get it from start to goal
             return path;
         }
 
-        closedList.insert(current);
+        // Mark this node as visited
+        closedList.insert(to_string(current->x) + "," + to_string(current->y));
 
-        // Check all neighbors (including diagonal movements)
-        for (const Point &direction : directions)
+        // Explore all possible directions (including diagonals)
+        for (const auto &dir : directions)
         {
-            Point neighbor(current.x + direction.x, current.y + direction.y);
+            int newX = current->x + dir.first;
+            int newY = current->y + dir.second;
 
-            // Make sure the neighbor is within bounds and not an obstacle
-            if (neighbor.x < 0 || neighbor.x >= grid.size() || neighbor.y < 0 || neighbor.y >= grid[0].size())
+            // Check if the new position is valid and not already visited
+            if (isValid(newX, newY, rows, cols, grid) &&
+                closedList.find(to_string(newX) + "," + to_string(newY)) == closedList.end())
             {
-                continue;
-            }
 
-            if (grid[neighbor.x][neighbor.y] == 1)
-            { // 1 is an obstacle
-                continue;
-            }
-
-            // If the neighbor is already in the closed list, skip it
-            if (closedList.find(neighbor) != closedList.end())
-            {
-                continue;
-            }
-
-            int tentativeG = gCost[current] + ((direction.x == 0 || direction.y == 0) ? 1 : 14); // Diagonal cost is 14, straight is 1
-
-            // If this path is better or the neighbor hasn't been visited
-            if (gCost.find(neighbor) == gCost.end() || tentativeG < gCost[neighbor])
-            {
-                gCost[neighbor] = tentativeG;
-                fCost[neighbor] = gCost[neighbor] + heuristic(neighbor, goal);
-                cameFrom[neighbor] = current;
-                openList.push({fCost[neighbor], neighbor});
+                int newG = current->g + 1;                          // g cost (distance from the start node)
+                int newH = heuristic(newX, newY, goal->x, goal->y); // h cost (heuristic)
+                Node *neighbor = new Node(newX, newY, newG, newH, current);
+                openList.push(neighbor);
             }
         }
     }
 
-    // If no path found
-    return {};
+    return {}; // No path found
 }
 
-// Function to create the game map dynamically
-vector<vector<int>> createGameMap(int width, int height, double obstacleProbability)
+// Function to print the grid with the path marked
+void AStar::printMapWithPath(const vector<vector<int>> &grid, const vector<Node *> &path, Node *start, Node *goal)
 {
-    vector<vector<int>> map(height, vector<int>(width));
-    srand(time(0)); // Seed for random number generation
+    if (path.empty()) return;
+    if (grid.empty()) return;
 
-    // Fill the map with random obstacles and free space (0 for free, 1 for obstacle)
-    for (int i = 0; i < height; ++i)
+    // Create a copy of the grid to work on
+    vector<vector<int>> mapWithPath = grid;
+
+    // Mark the path on the map
+    for (auto node : path)
     {
-        for (int j = 0; j < width; ++j)
+        if (node->x >= 0 && node->x < mapWithPath.size() && node->y >= 0 && node->y < mapWithPath[0].size()) {
+            if (mapWithPath[node->x][node->y] != 3 && mapWithPath[node->x][node->y] != 4) {
+                mapWithPath[node->x][node->y] = 2;
+            }
+        }
+    }
+
+    // Mark the start (Enemy) and goal (Player) positions
+    if (start->x < mapWithPath.size() && start->y < mapWithPath[0].size())
+    {
+        mapWithPath[start->x][start->y] = 4;
+    }
+    else
+    {
+        //std::cout << "(start->x >= mapWithPath.size() && start->y >= mapWithPath[0].size())\n";
+        return ;
+    }
+
+    if (goal->x < mapWithPath.size() && goal->y < mapWithPath[0].size())
+    {
+        mapWithPath[goal->x][goal->y] = 3;
+    }
+    else
+    {
+        //std::cout << "(goal->x >= mapWithPath.size() && goal->y >= mapWithPath[0].size())\n";
+        return ;
+    }
+
+    // Store previous map state for comparison
+    static vector<vector<int>> previousMapWithPath;
+
+    // Check if the map has changed
+    if (mapWithPath != previousMapWithPath)
+    {
+        // Print the updated map with the path
+        for (int i = 0; i < mapWithPath.size(); i++)
         {
-            if (rand() % 100 < obstacleProbability * 100)
+            for (int j = 0; j < mapWithPath[i].size(); ++j)
             {
-                map[i][j] = 1; // Obstacle
+                if (mapWithPath[i][j] == 0) {
+                    std::cout << ". "; // Empty space
+                } else if (mapWithPath[i][j] == 1) {
+                    std::cout << "# "; // Obstacle
+                } else if (mapWithPath[i][j] == 2) {
+                    std::cout << "x "; // Path
+                } else if (mapWithPath[i][j] == 3) {
+                    std::cout << "P "; // Player
+                } else if (mapWithPath[i][j] == 4) {
+                    std::cout << "E "; // Enemy
+                }
             }
-            else
-            {
-                map[i][j] = 0; // Free space
-            }
+            std::cout << std::endl;
         }
-    }
 
-    return map;
+        // Update previous map state after printing
+        previousMapWithPath = mapWithPath;
+    }
 }
 
-// Function to print the game map with symbols
-void printGameMap(const vector<vector<int>> &gameMap, const Point &start, const Point &goal, const vector<Point> &path)
+
+vector<vector<int>> AStar::generateMap(int rows, int cols, pair<int, int> enemyPos, pair<int, int> playerPos, const vector<pair<int, int>> &obstacles)
 {
-    int height = gameMap.size();
-    int width = gameMap[0].size();
+    // Initialize the map with all empty spaces (0)
+    vector<vector<int>> grid(rows, vector<int>(cols, 0));
 
-    // Create a copy of the game map to modify for display
-    vector<vector<char>> displayMap(height, vector<char>(width, ' '));
-
-    // Place obstacles on the map
-    for (int i = 0; i < height; ++i)
+    // Place obstacles on the map (1 represents obstacles)
+    for (const auto &obs : obstacles)
     {
-        for (int j = 0; j < width; ++j)
+        int x = obs.first;
+        int y = obs.second;
+        if (x >= 0 && x < rows && y >= 0 && y < cols)
         {
-            if (gameMap[i][j] == 1)
-            {
-                displayMap[i][j] = '1'; // Obstacle
-            }
+            grid[x][y] = 1; // Marking obstacle
         }
     }
 
-    // Place the player and enemy, ensuring the positions are within bounds
-    if (start.x >= 0 && start.x < height && start.y >= 0 && start.y < width)
+    // Place the enemy on the map (4 represents the enemy)
+    int ex = enemyPos.first;
+    int ey = enemyPos.second;
+    if (ex >= 0 && ex < rows && ey >= 0 && ey < cols)
     {
-        displayMap[start.x][start.y] = 'e'; // Enemy
-    }
-    if (goal.x >= 0 && goal.x < height && goal.y >= 0 && goal.y < width)
-    {
-        displayMap[goal.x][goal.y] = 'p'; // Player
+        grid[ex][ey] = 4; // Marking enemy
     }
 
-    // Mark the path with 'x', excluding the start and goal positions
-    for (const Point &p : path)
+    // Place the player on the map (3 represents the player)
+    int px = playerPos.first;
+    int py = playerPos.second;
+    if (px >= 0 && px < rows && py >= 0 && py < cols)
     {
-        if (p != start && p != goal)
-        { // Don't overwrite the start or goal
-            displayMap[p.x][p.y] = 'x';
-        }
+        grid[px][py] = 3; // Marking player
     }
 
-    // Print the map
-    for (int i = 0; i < height; ++i)
-    {
-        for (int j = 0; j < width; ++j)
-        {
-            if (displayMap[i][j] == ' ')
-            {
-                displayMap[i][j] = '0'; // Empty space
-            }
-            cout << displayMap[i][j] << " ";
-        }
-        cout << endl;
-    }
+    return grid;
 }
 
-// Function to convert grid coordinates to pixel coordinates
-Point getPixelCoordinates(const Point &gridPoint, int cellWidth, int cellHeight)
+std::pair<int, int> AStar::getGridCoordinates(int x, int y, int cellWidth, int cellHeight)
 {
-    return Point(gridPoint.x * cellWidth, gridPoint.y * cellHeight);
+    return std::make_pair(ceil(x / (float)cellWidth), ceil(y / (float)cellHeight));
 }
 
-// Function to get the first step in both game map coordinates and pixel coordinates
-std::vector<Point> getFirstStep(const vector<Point> &path, int cellWidth, int cellHeight)
+// Function that returns both grid coordinates (row, column) and pixel coordinates (x, y)
+// The pixel size is assumed to be fixed (e.g., 32x32 pixels per grid cell)
+std::pair<std::pair<int, int>, std::pair<int, int>> AStar::getPathElementInBothForms(int row, int col, int pixelSize)
 {
-    if (path.empty())
+    // Grid coordinates are just (row, col)
+    // Pixel coordinates are (col * pixelSize, row * pixelSize) assuming top-left origin
+    int pixelX = col * pixelSize;
+    int pixelY = row * pixelSize;
+
+    return {{row, col}, {pixelX, pixelY}};
+}
+
+// Function that returns a list of path elements, each containing both grid and pixel coordinates
+std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> AStar::getPathWithCoordinates(const std::vector<Node *> &path, int pixelSize)
+{
+    std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> pathWithCoordinates;
+
+    for (const Node *node : path)
     {
-        cout << "No path found!" << endl;
-        std::vector<Point> result;
-        return result;
+        // Get the pair from getPathElementInBothForms
+        std::pair<std::pair<int, int>, std::pair<int, int>> pathElement = getPathElementInBothForms(node->x, node->y, pixelSize);
+
+        // Manually unpack the grid and pixel coordinates
+        std::pair<int, int> gridCoord = pathElement.first;
+        std::pair<int, int> pixelCoord = pathElement.second;
+
+        // Store the grid and pixel coordinates as a pair of pairs
+        pathWithCoordinates.push_back(std::make_pair(gridCoord, pixelCoord));
     }
 
-    // First step in the game map (grid coordinates)
-    Point firstStepGameMap = path[0];
-
-    // First step in pixel coordinates
-    Point firstStepPixel = getPixelCoordinates(firstStepGameMap, cellWidth, cellHeight);
-
-    // Output the results
-    cout << "First step (Game Map Coordinates): (" << firstStepGameMap.x << ", " << firstStepGameMap.y << ")" << endl;
-    cout << "First step (Pixel Coordinates): (" << firstStepPixel.x << ", " << firstStepPixel.y << ")" << endl;
-
-    std::vector<Point> result;
-    result.push_back(firstStepGameMap);
-    result.push_back(firstStepPixel);
-
-    return result;
+    return pathWithCoordinates;
 }
 
-std::vector<Point> getObstaclePoints(int cellWidth, int cellHeight, std::vector<Obstacle *> obstacleVector)
+std::vector<std::pair<int, int>> AStar::getObstaclePoints(int cellWidth, int cellHeight, std::vector<Obstacle *> obstacleVector)
 {
-    std::vector<Point> gridCells; // resulting obstacle grid cells
+    std::vector<std::pair<int, int>> gridCells; // resulting obstacle grid cells
     for (auto obstacle : obstacleVector)
     {
         // Get the 8 points of the cuboid
@@ -253,13 +266,13 @@ std::vector<Point> getObstaclePoints(int cellWidth, int cellHeight, std::vector<
         {
             // For simplicity, we'll use the X and Z coordinates as the 2D grid coordinates
             // (ignoring Y in this example)
-            Point gridPoint = getGridCoordinates(static_cast<int>(point.x), static_cast<int>(point.z), cellWidth, cellHeight);
+            std::pair<int, int> gridPoint = getGridCoordinates(static_cast<int>(point.x), static_cast<int>(point.z), cellWidth, cellHeight);
 
             // Update the bounding box
-            minX = std::min(minX, gridPoint.x);
-            maxX = std::max(maxX, gridPoint.x);
-            minY = std::min(minY, gridPoint.y);
-            maxY = std::max(maxY, gridPoint.y);
+            minX = std::min(minX, gridPoint.first);
+            maxX = std::max(maxX, gridPoint.first);
+            minY = std::min(minY, gridPoint.second);
+            maxY = std::max(maxY, gridPoint.second);
         }
 
         // Now, generate all the grid cells within the bounding box
@@ -267,7 +280,7 @@ std::vector<Point> getObstaclePoints(int cellWidth, int cellHeight, std::vector<
         {
             for (int y = minY; y <= maxY; ++y)
             {
-                gridCells.push_back(Point(x, y));
+                gridCells.push_back(std::pair(x, y));
             }
         }
     }
@@ -275,61 +288,124 @@ std::vector<Point> getObstaclePoints(int cellWidth, int cellHeight, std::vector<
     return gridCells;
 }
 
-std::vector<float> runAStar(float playfieldWidth, float playfieldHeight, float playerX, float playerY, float enemyX, int enemyY, std::vector<Obstacle *> obstacleVector)
+void AStar::runAStar(float playfieldWidth, float playfieldHeight, float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector)
 {
-    std::cout << "playerX: " << playerX << ", playerY: " << playerY << std::endl;
-    std::cout << "enemyX: " << enemyX << ", enemyY: " << enemyY << std::endl;
-    // Map dimensions
-    int cellWidth = 1, cellHeight = 1;                                                                     // Each cell is cellWidth by cellHeight pixels
-    int gridWidth = ceil(playfieldWidth / cellWidth)+1, gridHeight = ceil(playfieldHeight/ cellHeight)+1; // 10x10 grid
+    gridWidth = ceil(playfieldWidth / cellWidth);
+    gridHeight = ceil(playfieldHeight / cellHeight);          // grid dimensions in rows and cols
 
-    std::cout << "1. gridWidth: " << gridWidth << ", gridHeight: " << gridHeight << std::endl;
+    std::cout << "Grid Width: " << gridWidth << std::endl;
+    std::cout << "Grid Height: " << gridHeight << std::endl;
 
-    // Create the game map dynamically (with random obstacles)
-    vector<vector<int>> gameMap = createGameMap(gridWidth, gridWidth, 0); // 30% obstacles
+    // Define the positions of the enemy and player
+    pair<int, int> enemyPos = getGridCoordinates(enemyX, enemyY, cellWidth, cellHeight);    // Enemy's grid position
+    pair<int, int> playerPos = getGridCoordinates(playerX, playerY, cellWidth, cellHeight); // Player's grid position
 
-    // Starting and goal positions in pixel coordinates
-    Point enemyPosition((int)enemyX, (int)enemyY);    // Enemy at pixel (12, 14)
-    Point playerPosition((int)playerX, (int)playerY); // Player at pixel (60, 30)
+    // Define the obstacle positions
+    vector<pair<int, int>> obstacles = getObstaclePoints(cellWidth, cellHeight, obstacleVector);
 
-    // Convert pixel positions to grid coordinates
-    Point start = getGridCoordinates(enemyPosition.x, enemyPosition.y, cellWidth, cellHeight);
+    // Generate the map based on the given parameters
+    vector<vector<int>> grid = generateMap(gridHeight, gridWidth, enemyPos, playerPos, obstacles);
 
-    Point goal = getGridCoordinates(playerPosition.x, playerPosition.y, cellWidth, cellHeight);
+    Node *start = new Node(enemyPos.first, enemyPos.second);  // Enemy's starting position
+    Node *goal = new Node(playerPos.first, playerPos.second); // Player's position
 
-    /*-------------------------------------start adding obstacles--------------------------------------------------*/
-    std::vector<Point> gridCells =  getObstaclePoints(cellWidth, cellHeight, obstacleVector);// resulting obstacle grid cells
+    // Perform A* algorithm to find the path
+    path = aStar(grid, start, goal);
 
-    for (auto obstacleGridCell: gridCells)
+    // Print the map with the path
+    if (!path.empty())
     {
-        gameMap[obstacleGridCell.x][obstacleGridCell.y] = 1;
+        std::cout << "Path found:" << std::endl;
+        printMapWithPath(grid, path, start, goal);
+    }
+    else
+    {
+        std::cout << "No path found!" << std::endl;
+        printMapWithPath(grid, path, start, goal);
+    }
+}
+
+void AStar::printMapUtil(float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector)
+{
+    gridWidth = ceil(playfieldWidth / cellWidth);
+    gridHeight = ceil(playfieldHeight / cellHeight);          // grid dimensions in rows and cols
+
+
+    // Define the positions of the enemy and player
+    pair<int, int> enemyPos = getGridCoordinates(enemyX, enemyY, cellWidth, cellHeight);    // Enemy's grid position
+    pair<int, int> playerPos = getGridCoordinates(playerX, playerY, cellWidth, cellHeight); // Player's grid position
+
+    // Define the obstacle positions
+    vector<pair<int, int>> obstacles = getObstaclePoints(cellWidth, cellHeight, obstacleVector);
+
+    // Generate the map based on the given parameters
+    vector<vector<int>> grid = generateMap(gridHeight, gridWidth, enemyPos, playerPos, obstacles);
+
+    Node *start = new Node(enemyPos.first, enemyPos.second);  // Enemy's starting position
+    Node *goal = new Node(playerPos.first, playerPos.second); // Player's position
+
+
+    // Print the map with the path
+    if (!path.empty())
+    {
+        printMapWithPath(grid, path, start, goal);
+    }
+    else
+    {
+        printMapWithPath(grid, path, start, goal);
     }
 
-    /*-------------------------------------finished adding obstacles-----------------------------------------------*/
+}
 
-    // Find the path from enemy to player
-    vector<Point> path = astar(start, goal, gameMap, cellWidth, cellHeight);
 
-    // If no path is found, inform the user and terminate
-    if (path.empty())
+std::vector<float> AStar::getNextNode()
+{
+    std::vector<float> result;
+    // Extract the first node from the path and convert it to pixel coordinates
+    if (path.size() > current_node+1)
     {
-        cout << "No path found!" << endl;
-        // return 1;
-        // Output the generated game map
-        cout << "Generated Game Map:\n";
-        printGameMap(gameMap, start, goal, path);
-        std::vector<float> nextPix;
-        return nextPix;
+        std::pair<int, int> gridCoord = {path[current_node]->x, path[current_node]->y};  // Get grid coordinates of the first node in path
+        std::pair<int, int> pixelCoord = getPathElementInBothForms(gridCoord.first, gridCoord.second, cellWidth).second;
+        result.push_back(float(pixelCoord.first));
+        result.push_back(float(pixelCoord.second));
     }
+    else
+    {
+        std::cout << "reached end of path\n";
+        //std::random_device rd;
+        //std::mt19937 gen(rd());
 
-    std::cout << "playfieldWidth: " << playfieldWidth << ", playfieldHeight: " << playfieldHeight << std::endl;
-    std::cout << "cellWidth: " << cellWidth << ", cellHeight: " << cellHeight << std::endl;
-    std::cout << "gridWidth: " << gridWidth << ", gridHeight: " << gridHeight << std::endl;
+        //std::uniform_real_distribution<> dis(1.0, 19.0);
+
+        //result.push_back(dis(gen));
+        //result.push_back(dis(gen));
+    }
+    current_node++;
+
+    return result;
+}
 
 
-    std::vector<Point> result = getFirstStep(path, cellWidth, cellHeight);
+AStar::AStar(float newPlayfieldWidth, float newPlayfieldHeight, float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector)
+{
+    playfieldWidth = newPlayfieldWidth;
+    playfieldHeight = newPlayfieldHeight;
+    cellWidth = 1;
+    cellHeight = 1;
+    gridWidth = ceil(playfieldWidth / cellWidth);
+    gridHeight = ceil(playfieldHeight / cellHeight);
+    current_node = 0;
+    runAStar(playfieldWidth, playfieldHeight, playerX, playerY, enemyX, enemyY, obstacleVector);
+}
 
-    std::vector<float> nextPix{(float)result[1].x, (float)result[1].y};
+void AStar::reset_AStar(float newPlayfieldWidth, float newPlayfieldHeight, float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector)
+{
+    current_node = 0;
+    runAStar(playfieldWidth, playfieldHeight, playerX, playerY, enemyX, enemyY, obstacleVector);
 
-    return nextPix;
+}
+
+std::vector<Node *> AStar::getPath()
+{
+    return path;
 }

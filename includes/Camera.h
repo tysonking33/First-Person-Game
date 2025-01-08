@@ -25,7 +25,6 @@ const float ZOOM        =  45.0f;
 
 class Camera {
 public:
-    glm::vec3 previousPosition;
     glm::vec3 Position;
     glm::vec3 Front;
     glm::vec3 Up;
@@ -60,8 +59,7 @@ public:
     float getYaw();
     void Squat();
     void wallRunLeft(float deltaTime);
-
-
+    glm::mat4 GetProjectionMatrix();
 
 
 private:

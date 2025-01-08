@@ -5,65 +5,82 @@
 #include <vector>
 #include <queue>
 #include <cmath>
-#include <unordered_map>
-#include <set>
-#include <cstdlib>
-#include <ctime>
+#include <unordered_set>
+#include <functional>
 #include <algorithm>
+#include <utility> // For std::pair
 #include "Obstacle.h"
 
+// Node structure to represent a grid node
+struct Node {
+    int x, y;     // Position of the node
+    int g, h;     // g is the cost to reach the node, h is the heuristic (estimated cost to goal)
+    Node *parent; // Pointer to the parent node
 
-using namespace std;
+    // Constructor
+    Node(int x, int y, int g = 0, int h = 0, Node *parent = nullptr);
 
-// Define the structure for a point (grid cell)
-struct Point {
-    int x, y;
+    // f = g + h, used to sort nodes in the priority queue
+    int f() const;
 
-    // Default constructor
-    Point() : x(0), y(0) {}
-
-    // Constructor with arguments
-    Point(int x, int y) : x(x), y(y) {}
-
-    bool operator==(const Point &other) const {
-        return x == other.x && y == other.y;
-    }
-
-    bool operator!=(const Point &other) const {
-        return !(*this == other);
-    }
-
-    bool operator<(const Point &other) const {
-        return x < other.x || (x == other.x && y < other.y);
-    }
+    bool operator>(const Node &other) const;
 };
 
-// Convert pixel coordinates to grid coordinates
-Point getGridCoordinates(int x, int y, int cellWidth, int cellHeight);
+// Directions for movement: 8 directions (up, down, left, right, and 4 diagonals)
+extern const std::vector<std::pair<int, int>> directions;
 
-// Heuristic function: Manhattan distance (for diagonal movement, we use Chebyshev distance)
-int heuristic(const Point &a, const Point &b);
+class AStar{
+    private:
+        std::vector<Node *> path;
+        float playfieldWidth;
+        float playfieldHeight;
+        int current_node;
+        int cellWidth;
+        int cellHeight;
+        int gridWidth;
+        int gridHeight;
 
-// A* Algorithm for pathfinding
-vector<Point> astar(const Point &start, const Point &goal, const vector<vector<int>> &grid, int cellWidth, int cellHeight);
+    public:
+        AStar(float newPlayfieldWidth, float newPlayfieldHeight, float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector);
 
-// Function to create the game map dynamically
-vector<vector<int>> createGameMap(int width, int height, double obstacleProbability);
+        // Check if a position is within bounds and not an obstacle
+        bool isValid(int x, int y, int rows, int cols, const std::vector<std::vector<int>> &grid);
 
-// Function to print the game map with symbols
-void printGameMap(const vector<vector<int>> &gameMap, const Point &start, const Point &goal, const vector<Point> &path);
+        // Heuristic function: Chebyshev distance (max of horizontal and vertical distance)
+        int heuristic(int x1, int y1, int x2, int y2);
 
-// Function to convert grid coordinates to pixel coordinates
-Point getPixelCoordinates(const Point &gridPoint, int cellWidth, int cellHeight);
+        // A* algorithm to find the shortest path
+        std::vector<Node *> aStar(const std::vector<std::vector<int>> &grid, Node *start, Node *goal);
 
-// Function to get the first step in both game map coordinates and pixel coordinates
-std::vector<Point> getFirstStep(const vector<Point> &path, int cellWidth, int cellHeight);
+        // Function to print the grid with the path marked
+        void printMapWithPath(const std::vector<std::vector<int>> &grid, const std::vector<Node *> &path, Node *start, Node *goal);
 
-// Function to run A* and return the first step in pixel coordinates
-std::vector<float> runAStar(float playfieldWidth, float playfieldHeight, float playerX, float playerY, float enemyX, int enemyY, std::vector<Obstacle *> obstacleVector);
+        // Function to generate a map with obstacles and player/enemy positions
+        std::vector<std::vector<int>> generateMap(int rows, int cols, std::pair<int, int> enemyPos, std::pair<int, int> playerPos, const std::vector<std::pair<int, int>>& obstacles);
 
-// Function to convert obstacle to grid points on map
-std::vector<Point> getObstaclePoints(int cellWidth, int cellHeight, std::vector<Obstacle *> obstacleVector);
+        // Function to get grid coordinates based on pixel coordinates
+        std::pair<int, int> getGridCoordinates(int x, int y, int cellWidth, int cellHeight);
+
+        // Function that returns both grid coordinates (row, column) and pixel coordinates (x, y)
+        std::pair<std::pair<int, int>, std::pair<int, int>> getPathElementInBothForms(int row, int col, int pixelSize);
+
+        // Function to get a list of path elements, each containing both grid and pixel coordinates
+        std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> getPathWithCoordinates(const std::vector<Node*>& path, int pixelSize);
+
+        // Function to get obstacle grid points from obstacles
+        std::vector<std::pair<int, int>> getObstaclePoints(int cellWidth, int cellHeight, std::vector<Obstacle *> obstacleVector);
+
+        // Function to run the A* algorithm
+        void runAStar(float playfieldWidth, float playfieldHeight, float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector);
+
+        void reset_AStar(float newPlayfieldWidth, float newPlayfieldHeight, float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector);
+        
+        std::vector<float> getNextNode();
+        std::vector<Node *> getPath();
+
+        void printMapUtil(float playerX, float playerY, float enemyX, float enemyY, std::vector<Obstacle *> obstacleVector);
+
+};
 
 
 #endif // ASTAR_H

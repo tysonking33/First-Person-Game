@@ -49,19 +49,19 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
 
     // Update the camera's position based on the direction of movement
     if (direction == FORWARD){
-        std::cout << "move forward\n";
+        //std::cout << "move forward\n";
         Velocity += Front * velocityFactor ;   // Move forward
     }
     if (direction == BACKWARD){
-        std::cout << "move backwards\n";
+        //std::cout << "move backwards\n";
         Velocity -= Front * velocityFactor ;   // Move backward
     }
     if (direction == LEFT){
-        std::cout << "move left\n";
+        //std::cout << "move left\n";
         Velocity -= Right * velocityFactor ;   // Move left
     }
     if (direction == RIGHT && isWallRunLeft == false){
-        std::cout << "move right\n";
+        //std::cout << "move right\n";
         Velocity += Right * velocityFactor ;   // Move right
     }
     if (direction == JUMP && isJumping == false)
@@ -81,12 +81,6 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
     Position.x = std::max(0.f, Position.x);
     Position.y = std::max(0.f, Position.y);
     Position.z = std::max(0.f, Position.z);
-
-
-    // Print the current position of the camera (for debugging purposes)
-    //std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
-    //std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
-    previousPosition = Position;
 }
 
 // Processes input from mouse movement to control the camera's orientation
@@ -148,9 +142,6 @@ void Camera::RunGravity()
         Position.y = 1;
         isJumping= false;
     }
-    //std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
-    previousPosition =  Position;
-
 }
 
 
@@ -215,11 +206,16 @@ void Camera::wallRunLeft(float deltaTime)
     }
 
     Position += Velocity * deltaTime;
+}
 
 
+// Get the projection matrix for the camera (Perspective projection)
+glm::mat4 Camera::GetProjectionMatrix() {
+    float windowHeight = 600;
+    float windowWidth = 800;
+    // Calculate the aspect ratio based on window dimensions (this should be set from the window size)
+    float aspectRatio = (float)windowWidth / (float)windowHeight;  // Assuming windowWidth and windowHeight are set elsewhere in your application
 
-    // Print the current position of the camera (for debugging purposes)
-    //std::cout << "Current position: (" << Position.x << ", " << Position.y << ", " << Position.z << ")\n";
-    //std::cout << "Current velocity: ("  << Velocity.x << ", " << Velocity.y << ", " << Velocity.z << ")\n";
-    previousPosition = Position;
+    // Generate a perspective projection matrix (FOV in radians)
+    return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 100.0f);  // Near and far planes are set at 0.1f and 100.0f
 }

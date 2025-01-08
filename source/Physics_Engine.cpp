@@ -62,7 +62,7 @@ bool Physics_Engine::CheckDotOnBoundedPlane(glm::vec3 point_of_intersection, std
     {
         return true;
     }
-    std::cout << "point of intersection not in plane\n";
+    //std::cout << "point of intersection not in plane\n";
     return false;
 }
 
@@ -139,15 +139,15 @@ bool Physics_Engine::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
 
         float normDotDir = glm::dot(normalisedNormalVector, rayViewDirection);
 
-        std::cout << "Normal Vector: " << glm::to_string(normalisedNormalVector) << std::endl;
-        std::cout << "Ray Direction: " << glm::to_string(normalisedDir) << std::endl;
-        std::cout << "Dot Product: " << normDotDir << std::endl;
+        //std::cout << "Normal Vector: " << glm::to_string(normalisedNormalVector) << std::endl;
+        //std::cout << "Ray Direction: " << glm::to_string(normalisedDir) << std::endl;
+        //std::cout << "Dot Product: " << normDotDir << std::endl;
 
         const float epsilon = 1e-6f;
         if (fabs(normDotDir) < epsilon)
         {
             // no intersection, parallel
-            std::cout << "no intersection, parallel\n";
+            //std::cout << "no intersection, parallel\n";
             // return false;
         }
 
@@ -158,7 +158,7 @@ bool Physics_Engine::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
         if (t < 0)
         {
             // behind ray origin, no collison
-            std::cout << "behind ray origin, no collison\n";
+            //std::cout << "behind ray origin, no collison\n";
 
             // return false;
         }
@@ -178,7 +178,7 @@ bool Physics_Engine::RayCast(Camera *camera, std::vector<Vertex> DataPoints)
             }
         }
     }
-    std::cout << "everything failed\n";
+    //std::cout << "everything failed\n";
     return false;
 }
 
@@ -190,8 +190,8 @@ bool Physics_Engine::cubeCollision(Cube *cubeA, Cube *cubeB)
     
     glm::vec3 Bpos = cubeB->getCubePosition();
     float Bsize = cubeB->getCubeSize();
-    std::cout << "CubeA: " << Apos.x << ", " << Apos.y << ", " << Apos.z << "\n";
-    std::cout << "CubeB: " << Bpos.x << ", " << Bpos.y << ", " << Bpos.z << "\n";
+    //std::cout << "CubeA: " << Apos.x << ", " << Apos.y << ", " << Apos.z << "\n";
+    //std::cout << "CubeB: " << Bpos.x << ", " << Bpos.y << ", " << Bpos.z << "\n";
 
     /*-----------------------cubeA vertexs-------------------------------*/
     float minXA  = Apos.x - Asize/2;

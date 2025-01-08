@@ -58,6 +58,10 @@ private:
     void initaliseObstacles();
     std::vector<Obstacle *> obstacleVector;
 
+    void printMinimap();
+    void renderMinimap();
+
+
 };
 
 #endif

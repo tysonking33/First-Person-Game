@@ -24,7 +24,7 @@ Projectile::Projectile(glm::vec3 startPosition, glm::vec3 projectileVelocity, fl
 
     //cubeSize = 1.01f;
     projectileCube = new Cube(startPosition, cubeSize, Orange, Pink);
-    lifespan = 20.f;
+    lifespan = 5.f;
     age = 0.f;
 }
 
